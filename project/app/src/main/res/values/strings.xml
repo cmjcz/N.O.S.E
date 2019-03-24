@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">N.O.S.E</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="AddSpot">Placer un Spot</string>
+    <string name="action_settings">Settings</string>
+    <string name="default_text">default</string>
+</resources>
