@@ -18,18 +18,19 @@ import java.util.List;
 
 public class DatabaseRequest extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "spots_db";
-    private static final int DATABASE_VERSION = 13;
-
-    private static final double TMP_LAT = 37.4220462, TMP_LONG = -122.084028;
+    private static final int DATABASE_VERSION = 18;
 
     private static final String TABLE_SPOTS = "spots";
     private static final String KEY_ID_SPOT = "id_spot";
     private static final String KEY_NAME = "name";
     private static final String KEY_DESC = "description";
     private static final String KEY_DATE = "date_of_creation";
+    private static final String KEY_LAT = "lat";
+    private static final String KEY_LONG = "long";
+    private static final String KEY_LVL = "influence_lvl";
     private static final String CREATE_TABLE_SPOTS = "CREATE TABLE " + TABLE_SPOTS + "(" +
             KEY_ID_SPOT + " INTEGER PRIMARY KEY, " + KEY_NAME + " TEXT NOT NULL, " + KEY_DESC + " TEXT NOT NULL, " +
-            KEY_DATE + " DATETIME NOT NULL" + ");";
+            KEY_DATE + " DATETIME NOT NULL, " + KEY_LAT + " REAL NOT NULL, " + KEY_LONG + " REAL NOT NULL, "+ KEY_LVL + " INTEGER NOT NULL" +");";
 
     private static final String TABLE_ITEMS = "items";
     private static final String KEY_COMMENTARY = "commentary";
@@ -54,10 +55,25 @@ public class DatabaseRequest extends SQLiteOpenHelper {
         this.context = context;
     }
 
-    public Spot getSpot(int id) {
-       ProgressiveImageLoader progressiveLoader = new ProgressiveImageLoader(
+    public Spot getSpot(long id) {
+        SQLiteDatabase db = getReadableDatabase();
+        String selectQuery = "SELECT * FROM " + TABLE_SPOTS
+                + " WHERE " + KEY_ID_SPOT + " = " + id;
+
+        Cursor c = db.rawQuery(selectQuery, null);
+        if(c == null ){
+            return null;
+        }
+        c.moveToFirst();
+        String name = c.getString(c.getColumnIndex(KEY_NAME));
+        String desc = c.getString(c.getColumnIndex(KEY_DESC));
+        double lat = c.getDouble(c.getColumnIndex(KEY_LAT));
+        double longitude = c.getDouble(c.getColumnIndex(KEY_LONG));
+        int lvl = c.getInt(c.getColumnIndex(KEY_LVL));
+        c.close();
+        ProgressiveImageLoader progressiveLoader = new ProgressiveImageLoader(
                 id, context);
-        return new SpotImpl(id, "Spot #" + id, TMP_LAT, TMP_LONG, 1, progressiveLoader);
+        return new SpotImpl(id, name, lat, longitude, lvl, progressiveLoader);
 
     }
 
@@ -106,13 +122,18 @@ public class DatabaseRequest extends SQLiteOpenHelper {
     public Spot createSpot(String name, String description, LatLng position){
         SQLiteDatabase db = getWritableDatabase();
 
+        final int START_LVL = 1;
+
         ContentValues values = new ContentValues();
         values.put(KEY_NAME, name);
         values.put(KEY_DESC, description);
         values.put(KEY_DATE, getdate());
+        values.put(KEY_LAT, position.latitude);
+        values.put(KEY_LONG, position.longitude);
+        values.put(KEY_LVL, START_LVL);
 
         long id = db.insert(TABLE_SPOTS, null, values);
-        return new SpotImpl(id, name, position.latitude, position.longitude, 1,
+        return new SpotImpl(id, name, position.latitude, position.longitude, START_LVL,
                 new ProgressiveImageLoader(id, this.context));
     }
 

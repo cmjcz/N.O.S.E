@@ -109,7 +109,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         mMap.setOnMarkerClickListener(marker -> {
             Intent intent = new Intent(MapsActivity.this, SpotView.class);
-            intent.putExtra(SpotView.SPOT_EXTRA, Long.parseLong(marker.getTitle()));
+            final long id = Long.parseLong(marker.getTitle());
+            intent.putExtra(SpotView.SPOT_EXTRA, id);
             startActivity(intent);
             return true;
         });

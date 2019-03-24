@@ -73,7 +73,7 @@ public class SpotView extends AppCompatActivity {
         fab.setOnClickListener(this::onAddButtonClick);
 
         Intent intent = getIntent();
-        int spotId = intent.getIntExtra(SPOT_EXTRA, -1);
+        long spotId = intent.getLongExtra(SPOT_EXTRA, -1);
         this.spot = new DatabaseRequest(this).getSpot(spotId);
         TextView tv = findViewById(R.id.spot_view_name);
         tv.setText(spot.getName());
