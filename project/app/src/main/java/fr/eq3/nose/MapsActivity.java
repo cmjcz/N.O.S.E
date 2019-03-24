@@ -2,12 +2,12 @@ package fr.eq3.nose;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-//import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
@@ -16,6 +16,8 @@ import android.view.View;
 import android.widget.Switch;
 import android.widget.Toast;
 
+import com.github.clans.fab.FloatingActionButton;
+import com.github.clans.fab.FloatingActionMenu;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -23,12 +25,14 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
 
 import fr.eq3.nose.spots.request_to_db.DatabaseRequest;
 import fr.eq3.nose.spots.spot.Spot;
+import fr.eq3.nose.spots.spot_view.SpotView;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, LocationListener {
 
@@ -42,16 +46,53 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static final float MIN_DISTANCE = 0;
     private ArrayList<Spot> spotList_tmp = new ArrayList<>();
     private ArrayList<CircleOptions> influenceZone_tmp = new ArrayList<>();
+    //About the menu
+    FloatingActionMenu menuMap;
+    FloatingActionButton option_mapTerrain, option_mapNormal, option_mapSatelite, option_addSpot;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         MapFragment map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map));
         map.getMapAsync(this);
+        initializeMenu();
     }
 
+    private void initializeMenu(){
+        menuMap = findViewById(R.id.menuMap);
+        option_mapTerrain = findViewById(R.id.option_mapTerrain);
+        option_mapNormal = findViewById(R.id.option_mapNormal);
+        option_mapSatelite = findViewById(R.id.option_mapSatelite);
+        option_addSpot = findViewById(R.id.option_addSpot);
+
+        option_mapTerrain.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                //TODO something when floating action menu first item clicked
+                mMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
+            }
+        });
+        option_mapNormal.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                //TODO something when floating action menu second item clicked
+                mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+            }
+        });
+        option_mapSatelite.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                //TODO something when floating action menu third item clicked
+                mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
+            }
+        });
+        option_addSpot.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                //TODO something when floating action menu third item clicked
+                addSpotOnMap();
+            }
+        });
+    }
 
     /**
      * Map management
@@ -70,14 +111,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //Min Zoom
         mMap.setMinZoomPreference(14.0f);
         //Disable rotation and scrolling
-        LatLngBounds myArea = new LatLngBounds(new LatLng(currentPosition.latitude-0.03, currentPosition.longitude-0.03), new LatLng(currentPosition.latitude+0.03, currentPosition.longitude+0.03));
+        LatLngBounds myArea = new LatLngBounds(new LatLng(currentPosition.latitude - 0.03, currentPosition.longitude - 0.03), new LatLng(currentPosition.latitude + 0.03, currentPosition.longitude + 0.03));
         mMap.setLatLngBoundsForCameraTarget(myArea);
         mMap.getUiSettings().setRotateGesturesEnabled(false);
         //Move the camera to the current location
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentPosition, 17.0f));
 
+        mMap.setOnMarkerClickListener(marker -> {
+            Intent intent = new Intent(MapsActivity.this, SpotView.class);
+            intent.putExtra(SpotView.SPOT_EXTRA, Long.parseLong(marker.getTitle()));
+            startActivity(intent);
+            return true;
+        });
     }
-
 
     /**
      * Listen to the location changes and refresh the Map according to them
@@ -166,28 +212,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     /**
      * Put a spot on the map, at the current location
-     * @param view
      */
-    public void addSpotOnMap(View view){
+    public void addSpotOnMap(){
         DatabaseRequest dbr = new DatabaseRequest(this);
         Spot spot = dbr.createSpot("Spot", "", new LatLng(myLocation.getLatitude(), myLocation.getLongitude()));
         mMap.addMarker(getSpotMarker(spot));
         mMap.addCircle(getSpotInfluenceZone(spot));
         spotList_tmp.add(spot);
         influenceZone_tmp.add(getSpotInfluenceZone(spot));
-    }
-
-    /**
-     * Change the Map type (satellite/Normal/terrain)
-     * @param view
-     */
-    public void setMapType(View view){
-        Switch switchType = findViewById(R.id.mapType);
-        if(switchType.isChecked()){
-            mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-        }else{
-            mMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
-        }
     }
 
 //    public boolean zonesInConflict(Spot centerZone1, Spot centerZone2){
@@ -211,7 +243,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private MarkerOptions getSpotMarker(Spot spot){
         return new MarkerOptions()
                 .position(new LatLng(spot.getLat(), spot.getLong()))
-                .title(spot.getName());
+                .title(spot.getId() + "");
     }
 
     private CircleOptions getSpotInfluenceZone(Spot spot){
