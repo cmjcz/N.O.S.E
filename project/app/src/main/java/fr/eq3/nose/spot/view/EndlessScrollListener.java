@@ -1,11 +1,11 @@
-package fr.eq3.nose.spots.ScrollListener;
+package fr.eq3.nose.spot.view;
 
 import android.widget.AbsListView;
 
-public abstract class EndlessScrollListener implements AbsListView.OnScrollListener {
+abstract class EndlessScrollListener implements AbsListView.OnScrollListener {
     // The minimum number of items to have below your current scroll position
     // before loading more.
-    private int visibleThreshold = 5;
+    private int visibleThreshold;
     // The current offset index of data you have loaded
     private int currentPage = 0;
     // The total number of items in the dataset after the last load
@@ -15,10 +15,7 @@ public abstract class EndlessScrollListener implements AbsListView.OnScrollListe
     // Sets the starting page index
     private int startingPageIndex = 0;
 
-    public EndlessScrollListener() {
-    }
-
-    public EndlessScrollListener(int visibleThreshold) {
+    EndlessScrollListener(int visibleThreshold) {
         this.visibleThreshold = visibleThreshold;
     }
 

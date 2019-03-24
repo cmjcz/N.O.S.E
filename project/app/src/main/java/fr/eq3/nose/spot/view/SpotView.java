@@ -1,4 +1,4 @@
-package fr.eq3.nose.spots.spot_view;
+package fr.eq3.nose.spot.view;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -17,10 +17,9 @@ import java.io.FileDescriptor;
 import java.io.IOException;
 
 import fr.eq3.nose.R;
-import fr.eq3.nose.spots.Item.ImageItem;
-import fr.eq3.nose.spots.ScrollListener.EndlessScrollListener;
-import fr.eq3.nose.spots.request_to_db.DatabaseRequest;
-import fr.eq3.nose.spots.spot.Spot;
+import fr.eq3.nose.spot.items.ImageItem;
+import fr.eq3.nose.spot.items.DatabaseRequest;
+import fr.eq3.nose.spot.items.Spot;
 
 public class SpotView extends AppCompatActivity {
 

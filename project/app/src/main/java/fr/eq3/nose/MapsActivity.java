@@ -13,7 +13,6 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.view.View;
-import android.widget.Switch;
 import android.widget.Toast;
 
 import com.github.clans.fab.FloatingActionButton;
@@ -25,14 +24,13 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
 
-import fr.eq3.nose.spots.request_to_db.DatabaseRequest;
-import fr.eq3.nose.spots.spot.Spot;
-import fr.eq3.nose.spots.spot_view.SpotView;
+import fr.eq3.nose.spot.items.DatabaseRequest;
+import fr.eq3.nose.spot.items.Spot;
+import fr.eq3.nose.spot.view.SpotView;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, LocationListener {
 
@@ -68,29 +66,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         option_mapSatelite = findViewById(R.id.option_mapSatelite);
         option_addSpot = findViewById(R.id.option_addSpot);
 
-        option_mapTerrain.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                //TODO something when floating action menu first item clicked
-                mMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
-            }
+        option_mapTerrain.setOnClickListener(v -> {
+            //TODO something when floating action menu first item clicked
+            mMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
         });
-        option_mapNormal.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                //TODO something when floating action menu second item clicked
-                mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-            }
+        option_mapNormal.setOnClickListener(v -> {
+            //TODO something when floating action menu second item clicked
+            mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         });
-        option_mapSatelite.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                //TODO something when floating action menu third item clicked
-                mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
-            }
+        option_mapSatelite.setOnClickListener(v -> {
+            //TODO something when floating action menu third item clicked
+            mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
         });
-        option_addSpot.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                //TODO something when floating action menu third item clicked
-                addSpotOnMap();
-            }
+        option_addSpot.setOnClickListener(v -> {
+            //TODO something when floating action menu third item clicked
+            addSpotOnMap();
         });
     }
 
@@ -127,7 +117,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     /**
      * Listen to the location changes and refresh the Map according to them
-     * @param location
+     * @param location new location of person
      */
     @Override
     public void onLocationChanged(Location location) {

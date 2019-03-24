@@ -1,11 +1,8 @@
-package fr.eq3.nose.spots.spot;
+package fr.eq3.nose.spot.items;
 
 import android.content.Context;
-import android.location.Location;
 
 import java.util.ArrayList;
-
-import fr.eq3.nose.spots.Item.ImageItem;
 
 public interface Spot {
     String getName();

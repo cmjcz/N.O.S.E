@@ -1,4 +1,4 @@
-package fr.eq3.nose.spots.Item;
+package fr.eq3.nose.spot.items;
 
 import android.graphics.Bitmap;
 
@@ -16,7 +16,7 @@ public class ImageItem {
         return image;
     }
 
-    public void setImage(Bitmap image) {
+    void setImage(Bitmap image) {
         this.image = image;
     }
 
@@ -24,11 +24,11 @@ public class ImageItem {
         return title;
     }
 
-    public void setTitle(String title) {
+    void setTitle(String title) {
         this.title = title;
     }
 
-    public static ImageItem createEmptyImageItem(int width, int heigh, String title){
+    static ImageItem createEmptyImageItem(int width, int heigh, String title){
         int[] pixels = new int[width * heigh];
         for(int i = 0; i < width * heigh; ++i){
             pixels[i] = 0;

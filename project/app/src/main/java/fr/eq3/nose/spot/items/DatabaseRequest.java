@@ -1,4 +1,4 @@
-package fr.eq3.nose.spots.request_to_db;
+package fr.eq3.nose.spot.items;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -7,7 +7,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.location.Location;
 
 import com.google.android.gms.maps.model.LatLng;
 
@@ -16,12 +15,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
-import fr.eq3.nose.spots.Item.ImageItem;
-import fr.eq3.nose.spots.loader.ProgressiveImageLoader;
-import fr.eq3.nose.spots.loader.ProgressiveLoader;
-import fr.eq3.nose.spots.spot.Spot;
-import fr.eq3.nose.spots.spot.SpotImpl;
 
 public class DatabaseRequest extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "spots_db";
@@ -62,13 +55,13 @@ public class DatabaseRequest extends SQLiteOpenHelper {
     }
 
     public Spot getSpot(int id) {
-        ProgressiveLoader<ImageItem> progressiveLoader = new ProgressiveImageLoader(
+       ProgressiveImageLoader progressiveLoader = new ProgressiveImageLoader(
                 id, context);
         return new SpotImpl(id, "Spot #" + id, TMP_LAT, TMP_LONG, 1, progressiveLoader);
 
     }
 
-    public List<Integer> getItemsIdsOfSpot(long spotId) {
+    List<Integer> getItemsIdsOfSpot(long spotId) {
 
         SQLiteDatabase db = getReadableDatabase();
         String selectQuery = "SELECT " + KEY_ID_ITEM + " FROM " + TABLE_ITEMS +
@@ -89,7 +82,7 @@ public class DatabaseRequest extends SQLiteOpenHelper {
         return ids;
     }
 
-    public ImageItem getImage(int id) {
+    ImageItem getImage(int id) {
 
         if(id == -1){
             return ImageItem.createEmptyImageItem(1, 1, "null");
@@ -128,7 +121,7 @@ public class DatabaseRequest extends SQLiteOpenHelper {
         return sdf.format(new Date());
     }
 
-    public long putImage(ImageItem imageItem, long spotId) {
+    long putImage(ImageItem imageItem, long spotId) {
         SQLiteDatabase db = getWritableDatabase();
         return putImage(db, imageItem, spotId);
     }
@@ -141,8 +134,7 @@ public class DatabaseRequest extends SQLiteOpenHelper {
         ContentValues image_values = new ContentValues();
         image_values.put(KEY_IMAGE_DATA, imageBytes);
         image_values.put(KEY_ID_ITEM, itemId);
-        long id = db.insert(TABLE_IMAGES, null, image_values);
-        return id;
+        return db.insert(TABLE_IMAGES, null, image_values);
     }
 
     private long putItem(SQLiteDatabase db, String name, String commentary, long spotId){

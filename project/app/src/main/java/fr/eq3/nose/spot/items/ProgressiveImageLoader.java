@@ -1,4 +1,4 @@
-package fr.eq3.nose.spots.loader;
+package fr.eq3.nose.spot.items;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -14,10 +14,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import fr.eq3.nose.spots.Item.ImageItem;
-import fr.eq3.nose.spots.request_to_db.DatabaseRequest;
-
-public class ProgressiveImageLoader implements ProgressiveLoader<ImageItem> {
+public class ProgressiveImageLoader {
 
     private static final int IMAGE_SIZE = 128;
 
@@ -28,13 +25,12 @@ public class ProgressiveImageLoader implements ProgressiveLoader<ImageItem> {
 
     private int cursor = 0;
 
-    public ProgressiveImageLoader(long spotId, Context context) {
+    ProgressiveImageLoader(long spotId, Context context) {
         this.spotId = spotId;
         this.context = context;
     }
 
-    @Override
-    public Collection<ImageItem> getNextElements(int nbElements, boolean isNeededToWait) {
+    Collection<ImageItem> getNextElements(int nbElements, boolean isNeededToWait) {
         final HashSet<Future> threads = new HashSet<>();
         final ArrayList<ImageItem> imageLoaded = new ArrayList<>();
         if(ids == null)
@@ -71,7 +67,6 @@ public class ProgressiveImageLoader implements ProgressiveLoader<ImageItem> {
     }
 
 
-    @Override
     public void reset() {
         cursor = 0;
     }

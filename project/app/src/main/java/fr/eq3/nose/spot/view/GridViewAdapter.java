@@ -1,4 +1,4 @@
-package fr.eq3.nose.spots.spot_view;
+package fr.eq3.nose.spot.view;
 
 import android.app.Activity;
 import android.content.Context;
@@ -11,14 +11,14 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import fr.eq3.nose.R;
-import fr.eq3.nose.spots.Item.ImageItem;
+import fr.eq3.nose.spot.items.ImageItem;
 
 class GridViewAdapter extends ArrayAdapter {
     private Context context;
     private int layoutResourceId;
     private ArrayList<ImageItem> data;
 
-    public GridViewAdapter(Context context, int layoutResourceId, ArrayList<ImageItem> data) {
+    GridViewAdapter(Context context, int layoutResourceId, ArrayList<ImageItem> data) {
         super(context, layoutResourceId, data);
         this.layoutResourceId = layoutResourceId;
         this.context = context;

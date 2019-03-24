@@ -1,25 +1,20 @@
-package fr.eq3.nose.spots.spot;
+package fr.eq3.nose.spot.items;
 
 import android.content.Context;
-import android.location.Location;
 
 import java.util.ArrayList;
 import java.util.Collection;
-
-import fr.eq3.nose.spots.Item.ImageItem;
-import fr.eq3.nose.spots.loader.ProgressiveLoader;
-import fr.eq3.nose.spots.request_to_db.DatabaseRequest;
 
 public final class SpotImpl implements Spot{
 
     private final String name;
     private final long id;
     private final ArrayList<ImageItem> items;
-    private final ProgressiveLoader<ImageItem> progressiveLoader;
+    private final ProgressiveImageLoader progressiveLoader;
     private final double lattitude, longitude;
     private final int influenceLvl;
 
-    public SpotImpl(long id, String name, double lat, double longitude, int influenceLvl, ProgressiveLoader<ImageItem> progressiveLoader) {
+    SpotImpl(long id, String name, double lat, double longitude, int influenceLvl, ProgressiveImageLoader progressiveLoader) {
         this.id = id;
         this.name = name;
         this.items = new ArrayList<>();
