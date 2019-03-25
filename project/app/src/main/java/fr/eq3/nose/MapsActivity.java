@@ -68,18 +68,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         option_mapTerrain.setOnClickListener(v -> {
             //TODO something when floating action menu first item clicked
             mMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
+            menuMap.close(true);
         });
         option_mapNormal.setOnClickListener(v -> {
             //TODO something when floating action menu second item clicked
             mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+            menuMap.close(true);
+
         });
         option_mapSatelite.setOnClickListener(v -> {
             //TODO something when floating action menu third item clicked
             mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
+            menuMap.close(true);
+
         });
         option_addSpot.setOnClickListener(v -> {
             //TODO something when floating action menu third item clicked
             addSpotOnMap();
+            menuMap.close(true);
         });
     }
 
