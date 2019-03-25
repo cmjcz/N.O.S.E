@@ -39,7 +39,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     private LocationManager locationManager;
     private Location myLocation;
-//    private LatLngBounds myArea;
     private static final long MIN_TIME = 0;
     private static final float MIN_DISTANCE = 0;
     private ArrayList<Spot> spotList_tmp = new ArrayList<>();
@@ -125,11 +124,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
         mMap.clear();
         myLocation=location;
-//        mMap.addCircle(new CircleOptions()
-//                .center(latLng)
-//                .radius(20)
-//                .strokeColor(Color.BLUE)
-//                .fillColor(0x700787ef));
+        mMap.addCircle(new CircleOptions()
+                .center(latLng)
+                .radius(20)
+                .strokeColor(Color.BLUE)
+                .fillColor(0x700787ef));
         refreshMap();
     }
 
