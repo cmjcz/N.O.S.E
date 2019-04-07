@@ -18,7 +18,7 @@ import java.util.List;
 
 public class DatabaseRequest extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "spots_db";
-    private static final int DATABASE_VERSION = 18;
+    private static final int DATABASE_VERSION = 19;
 
     private static final String TABLE_SPOTS = "spots";
     private static final String KEY_ID_SPOT = "id_spot";
@@ -75,6 +75,31 @@ public class DatabaseRequest extends SQLiteOpenHelper {
                 id, context);
         return new SpotImpl(id, name, lat, longitude, lvl, progressiveLoader);
 
+    }
+
+    public List<Integer> getSpotsBetween(double latitude, double longitude, double radius){
+        double latMin = latitude - radius;
+        double latMax = latitude + radius;
+        double longMin = longitude - radius;
+        double longMax = longitude + radius;
+        ArrayList<Integer> ids = new ArrayList<>();
+        SQLiteDatabase db = getReadableDatabase();
+        String selectQuery = "SELECT " + KEY_ID_SPOT +" FROM " + TABLE_SPOTS
+                + " WHERE " + KEY_LAT +  ">=" + latMin + " AND " + KEY_LAT + " <= " + latMax
+                + " AND " + KEY_LONG +  ">=" + longMin + " AND " + KEY_LONG + " <= " + longMax;
+
+        Cursor c = db.rawQuery(selectQuery, null);
+        if(c == null ){
+            return ids;
+        }
+        if(c.moveToFirst()){
+            do{
+                int id = c.getInt(c.getColumnIndex(KEY_ID_SPOT));
+                ids.add(id);
+            }while (c.moveToNext());
+        }
+        c.close();
+        return ids;
     }
 
     List<Integer> getItemsIdsOfSpot(long spotId) {
