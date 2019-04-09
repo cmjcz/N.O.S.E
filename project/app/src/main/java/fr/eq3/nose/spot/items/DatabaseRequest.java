@@ -7,10 +7,16 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -18,7 +24,7 @@ import java.util.List;
 
 public class DatabaseRequest extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "spots_db";
-    private static final int DATABASE_VERSION = 19;
+    private static final int DATABASE_VERSION = 22;
 
     private static final String TABLE_SPOTS = "spots";
     private static final String KEY_ID_SPOT = "id_spot";
@@ -42,11 +48,11 @@ public class DatabaseRequest extends SQLiteOpenHelper {
             ");";
 
     private static final String TABLE_IMAGES = "images";
-    private static final String KEY_IMAGE_DATA = "data";
     private static final String CREATE_TABLE_IMAGES = "CREATE TABLE " + TABLE_IMAGES + "(" +
-            KEY_ID_ITEM + " INTEGER PRIMARY KEY, " + KEY_IMAGE_DATA + " BLOB, "+  " FOREIGN KEY("
+            KEY_ID_ITEM + " INTEGER PRIMARY KEY, "+  " FOREIGN KEY("
             + KEY_ID_ITEM + ") REFERENCES " + TABLE_ITEMS +
             ");";
+    private static final String IMAGE_EXT = ".bimg";
 
     private Context context;
 
@@ -127,20 +133,36 @@ public class DatabaseRequest extends SQLiteOpenHelper {
 
         if(id == -1){
             return ImageItem.createEmptyImageItem(1, 1, "null");
-        }
+        }else{
+//            SQLiteDatabase db = getReadableDatabase();
+//            String selectQuery = "SELECT " + KEY_IMAGE_DATA + " FROM " + TABLE_IMAGES
+//                + " WHERE " + KEY_ID_ITEM + " = " + id;
+//
+//            Cursor c = db.rawQuery(selectQuery, null);
+//            if(c == null ){
+//                return null;
+//            }
+//            c.moveToFirst();
+//            byte[] imageBytes = c.getBlob(c.getColumnIndex(KEY_IMAGE_DATA));
+            try {
+                return getImageFromFile(id);
+            } catch (IOException e) {
+                Log.i("DIM", "Error when getting the image. Empty image given.");
+                return ImageItem.createEmptyImageItem(1, 1, "Not found");
+            }
 
-        SQLiteDatabase db = getReadableDatabase();
-        String selectQuery = "SELECT " + KEY_IMAGE_DATA + " FROM " + TABLE_IMAGES
-                + " WHERE " + KEY_ID_ITEM + " = " + id;
-
-        Cursor c = db.rawQuery(selectQuery, null);
-        if(c == null ){
-            return null;
         }
-        c.moveToFirst();
-        byte[] imageBytes = c.getBlob(c.getColumnIndex(KEY_IMAGE_DATA));
-        Bitmap bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
-        c.close();
+    }
+
+    private ImageItem getImageFromFile(int id) throws IOException {
+        File path = this.context.getFilesDir();
+        File img = new File(path, id + IMAGE_EXT);
+        FileInputStream in;
+        in = new FileInputStream(img);
+        byte[] bytes = new byte[(int) img.length()];
+        in.read(bytes);
+        in.close();
+        Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
         return new ImageItem(bitmap, "Image #"+id);
     }
 
@@ -173,14 +195,26 @@ public class DatabaseRequest extends SQLiteOpenHelper {
     }
 
     private long putImage(SQLiteDatabase db, ImageItem imageItem, long spotId){
+        long itemId = putItem(db, imageItem.getTitle(), "", spotId);
+        ContentValues image_values = new ContentValues();
+        putImageInFile(imageItem, itemId);
+        image_values.put(KEY_ID_ITEM, itemId);
+        return db.insert(TABLE_IMAGES, null, image_values);
+    }
+
+    private void putImageInFile(ImageItem imageItem, long itemId){
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         imageItem.getImage().compress(Bitmap.CompressFormat.PNG, 0, os);
         byte[] imageBytes = os.toByteArray();
-        long itemId = putItem(db, imageItem.getTitle(), "", spotId);
-        ContentValues image_values = new ContentValues();
-        image_values.put(KEY_IMAGE_DATA, imageBytes);
-        image_values.put(KEY_ID_ITEM, itemId);
-        return db.insert(TABLE_IMAGES, null, image_values);
+        File path = this.context.getFilesDir();
+        File img = new File(path, itemId + IMAGE_EXT);
+        try {
+            FileOutputStream stream = new FileOutputStream(img);
+            stream.write(imageBytes);
+            stream.close();
+        } catch (IOException e) {
+            Log.i("DIM", "Error when saving the file");
+        }
     }
 
     private long putItem(SQLiteDatabase db, String name, String commentary, long spotId){
