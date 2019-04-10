@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
 import android.support.annotation.Nullable;
@@ -22,7 +23,7 @@ import fr.eq3.nose.spot.items.ImageItem;
 import fr.eq3.nose.spot.items.DatabaseRequest;
 import fr.eq3.nose.spot.items.Spot;
 
-public class SpotActivity extends AppCompatActivity {
+public final class SpotActivity extends AppCompatActivity {
 
     private static final int READ_REQUEST_CODE = 36;
     public static final String SPOT_EXTRA = "spot_extra";
@@ -76,15 +77,8 @@ public class SpotActivity extends AppCompatActivity {
         if (requestCode == READ_REQUEST_CODE && resultCode == RESULT_OK) {
             if (data != null) {
                 Uri uri = data.getData();
-                try {
-                    Bitmap img = getBitmapFromUri(uri);
-                    ImageItem imageItem = new ImageItem(img, "");
-                    this.spot.addItem(imageItem);
-                    new DatabaseRequest(this).putImage(imageItem, this.spot.getId());
-                    gridViewAdapter.notifyDataSetChanged();
-                } catch (IOException e) {
-                    Log.i("DIM", e.getMessage());
-                }
+                AddImageAsyncTask task = new AddImageAsyncTask();
+                task.execute(uri);
             }
         }
 
@@ -118,5 +112,23 @@ public class SpotActivity extends AppCompatActivity {
         }
         Log.i("DIM", isMoreItemLoaded ? "Data loaded !" : "Error when loading new data");
         return isMoreItemLoaded;
+    }
+
+    private final class AddImageAsyncTask extends AsyncTask<Uri, Void, Void>{
+
+        @Override
+        protected Void doInBackground(Uri... uris) {
+            try {
+                Uri uri = uris[0];
+                Bitmap img = getBitmapFromUri(uri);
+                ImageItem imageItem = new ImageItem(img, "");
+                SpotActivity.this.spot.addItem(imageItem);
+                new DatabaseRequest(SpotActivity.this).putImage(imageItem, SpotActivity.this.spot.getId());
+                gridViewAdapter.notifyDataSetChanged();
+            } catch (IOException e) {
+                Log.i("DIM", e.getMessage());
+            }
+            return null;
+        }
     }
 }

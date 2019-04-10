@@ -19,7 +19,7 @@ import java.util.concurrent.Future;
 import fr.eq3.nose.spot.items.DatabaseRequest;
 import fr.eq3.nose.spot.items.ImageItem;
 
-public class ProgressiveImageLoader {
+public final class ProgressiveImageLoader {
 
     private static final int IMAGE_SIZE = 128;
 
@@ -45,7 +45,7 @@ public class ProgressiveImageLoader {
             ImageItem imageItem = new DatabaseRequest(this.context).getImage(-1);
             imageLoaded.add(imageItem);
             Loader loader = new Loader();
-            loader.execute(new Pair<>(i, imageItem));
+            loader.execute(new Pair<>(this.ids.get(i), imageItem));
         }
         cursor = i;
         return imageLoaded;
