@@ -24,7 +24,7 @@ import java.util.List;
 
 public class DatabaseRequest extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "spots_db";
-    private static final int DATABASE_VERSION = 22;
+    private static final int DATABASE_VERSION = 23;
 
     private static final String TABLE_SPOTS = "spots";
     private static final String KEY_ID_SPOT = "id_spot";
@@ -79,6 +79,7 @@ public class DatabaseRequest extends SQLiteOpenHelper {
         c.close();
         ProgressiveImageLoader progressiveLoader = new ProgressiveImageLoader(
                 id, context);
+        db.close();
         return new SpotImpl(id, name, lat, longitude, lvl, progressiveLoader);
 
     }
@@ -105,6 +106,7 @@ public class DatabaseRequest extends SQLiteOpenHelper {
             }while (c.moveToNext());
         }
         c.close();
+        db.close();
         return ids;
     }
 
@@ -126,6 +128,7 @@ public class DatabaseRequest extends SQLiteOpenHelper {
             }while(c.moveToNext());
         }
         c.close();
+        db.close();
         return ids;
     }
 
@@ -134,16 +137,6 @@ public class DatabaseRequest extends SQLiteOpenHelper {
         if(id == -1){
             return ImageItem.createEmptyImageItem(1, 1, "null");
         }else{
-//            SQLiteDatabase db = getReadableDatabase();
-//            String selectQuery = "SELECT " + KEY_IMAGE_DATA + " FROM " + TABLE_IMAGES
-//                + " WHERE " + KEY_ID_ITEM + " = " + id;
-//
-//            Cursor c = db.rawQuery(selectQuery, null);
-//            if(c == null ){
-//                return null;
-//            }
-//            c.moveToFirst();
-//            byte[] imageBytes = c.getBlob(c.getColumnIndex(KEY_IMAGE_DATA));
             try {
                 return getImageFromFile(id);
             } catch (IOException e) {
@@ -199,7 +192,9 @@ public class DatabaseRequest extends SQLiteOpenHelper {
         ContentValues image_values = new ContentValues();
         putImageInFile(imageItem, itemId);
         image_values.put(KEY_ID_ITEM, itemId);
-        return db.insert(TABLE_IMAGES, null, image_values);
+        db.insert(TABLE_IMAGES, null, image_values);
+        db.close();
+        return itemId;
     }
 
     private void putImageInFile(ImageItem imageItem, long itemId){
@@ -223,7 +218,8 @@ public class DatabaseRequest extends SQLiteOpenHelper {
         items_values.put(KEY_COMMENTARY, commentary);
         items_values.put(KEY_DATE, getdate());
         items_values.put(KEY_ID_SPOT, spotId);
-        return db.insert(TABLE_ITEMS, null, items_values);
+        long id = db.insert(TABLE_ITEMS, null, items_values);
+        return id;
     }
 
     @Override
