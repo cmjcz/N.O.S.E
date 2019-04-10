@@ -14,7 +14,6 @@ import com.google.android.gms.maps.model.LatLng;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -22,9 +21,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import fr.eq3.nose.spot.view.ProgressiveImageLoader;
+
 public class DatabaseRequest extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "spots_db";
-    private static final int DATABASE_VERSION = 23;
+    private static final int DATABASE_VERSION = 25;
 
     private static final String TABLE_SPOTS = "spots";
     private static final String KEY_ID_SPOT = "id_spot";
@@ -77,10 +78,8 @@ public class DatabaseRequest extends SQLiteOpenHelper {
         double longitude = c.getDouble(c.getColumnIndex(KEY_LONG));
         int lvl = c.getInt(c.getColumnIndex(KEY_LVL));
         c.close();
-        ProgressiveImageLoader progressiveLoader = new ProgressiveImageLoader(
-                id, context);
         db.close();
-        return new SpotImpl(id, name, lat, longitude, lvl, progressiveLoader);
+        return new SpotImpl(id, name, lat, longitude, lvl);
 
     }
 
@@ -110,7 +109,7 @@ public class DatabaseRequest extends SQLiteOpenHelper {
         return ids;
     }
 
-    List<Integer> getItemsIdsOfSpot(long spotId) {
+    public List<Integer> getItemsIdsOfSpot(long spotId) {
 
         SQLiteDatabase db = getReadableDatabase();
         String selectQuery = "SELECT " + KEY_ID_ITEM + " FROM " + TABLE_ITEMS +
@@ -132,7 +131,7 @@ public class DatabaseRequest extends SQLiteOpenHelper {
         return ids;
     }
 
-    ImageItem getImage(int id) {
+    public ImageItem getImage(int id) {
 
         if(id == -1){
             return ImageItem.createEmptyImageItem(1, 1, "null");
@@ -173,8 +172,7 @@ public class DatabaseRequest extends SQLiteOpenHelper {
         values.put(KEY_LVL, START_LVL);
 
         long id = db.insert(TABLE_SPOTS, null, values);
-        return new SpotImpl(id, name, position.latitude, position.longitude, START_LVL,
-                new ProgressiveImageLoader(id, this.context));
+        return new SpotImpl(id, name, position.latitude, position.longitude, START_LVL);
     }
 
     private String getdate() {
@@ -182,7 +180,7 @@ public class DatabaseRequest extends SQLiteOpenHelper {
         return sdf.format(new Date());
     }
 
-    long putImage(ImageItem imageItem, long spotId) {
+    public long putImage(ImageItem imageItem, long spotId) {
         SQLiteDatabase db = getWritableDatabase();
         return putImage(db, imageItem, spotId);
     }

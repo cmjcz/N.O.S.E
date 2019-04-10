@@ -31,7 +31,7 @@ import java.util.Set;
 
 import fr.eq3.nose.spot.items.DatabaseRequest;
 import fr.eq3.nose.spot.items.Spot;
-import fr.eq3.nose.spot.view.SpotView;
+import fr.eq3.nose.spot.view.SpotActivity;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, LocationListener {
 
@@ -111,9 +111,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentPosition, 17.0f));
 
         mMap.setOnMarkerClickListener(marker -> {
-            Intent intent = new Intent(MapsActivity.this, SpotView.class);
+            Intent intent = new Intent(MapsActivity.this, SpotActivity.class);
             final long id = Long.parseLong(marker.getTitle());
-            intent.putExtra(SpotView.SPOT_EXTRA, id);
+            intent.putExtra(SpotActivity.SPOT_EXTRA, id);
             startActivity(intent);
             return true;
         });

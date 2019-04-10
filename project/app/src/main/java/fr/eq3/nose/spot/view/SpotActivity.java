@@ -15,13 +15,14 @@ import android.widget.GridView;
 import android.widget.TextView;
 import java.io.FileDescriptor;
 import java.io.IOException;
+import java.util.Collection;
 
 import fr.eq3.nose.R;
 import fr.eq3.nose.spot.items.ImageItem;
 import fr.eq3.nose.spot.items.DatabaseRequest;
 import fr.eq3.nose.spot.items.Spot;
 
-public class SpotView extends AppCompatActivity {
+public class SpotActivity extends AppCompatActivity {
 
     private static final int READ_REQUEST_CODE = 36;
     public static final String SPOT_EXTRA = "spot_extra";
@@ -29,6 +30,7 @@ public class SpotView extends AppCompatActivity {
     private GridView gridView;
     private GridViewAdapter gridViewAdapter;
     private Spot spot;
+    private ProgressiveImageLoader progressiveImageLoader;
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -39,7 +41,8 @@ public class SpotView extends AppCompatActivity {
                 try {
                     Bitmap img = getBitmapFromUri(uri);
                     ImageItem imageItem = new ImageItem(img, "");
-                    this.spot.addItem(this, imageItem);
+                    this.spot.addItem(imageItem);
+                    new DatabaseRequest(this).putImage(imageItem, this.spot.getId());
                     gridViewAdapter.notifyDataSetChanged();
                 } catch (IOException e) {
                     Log.i("DIM", e.getMessage());
@@ -75,6 +78,7 @@ public class SpotView extends AppCompatActivity {
         Intent intent = getIntent();
         long spotId = intent.getLongExtra(SPOT_EXTRA, -1);
         this.spot = new DatabaseRequest(this).getSpot(spotId);
+        this.progressiveImageLoader = new ProgressiveImageLoader(spotId, this);
         TextView tv = findViewById(R.id.spot_view_name);
         tv.setText(spot.getName());
         initializeGridView();
@@ -98,7 +102,11 @@ public class SpotView extends AppCompatActivity {
 
     private boolean loadNextData(int totalItems, boolean isNeededToWait){
         Log.i("DIM", "Loading more data");
-        boolean isMoreItemLoaded = this.spot.loadMore(totalItems, isNeededToWait);
+        Collection<ImageItem> imageItems = this.progressiveImageLoader.getNextElements(totalItems, isNeededToWait);
+        for(ImageItem img : imageItems){
+            this.spot.addItem(img);
+        }
+        boolean isMoreItemLoaded = !imageItems.isEmpty();
         if(isMoreItemLoaded){
             gridViewAdapter.notifyDataSetChanged();
         }

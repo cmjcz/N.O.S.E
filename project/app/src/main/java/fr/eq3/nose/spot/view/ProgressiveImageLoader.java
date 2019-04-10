@@ -1,4 +1,4 @@
-package fr.eq3.nose.spot.items;
+package fr.eq3.nose.spot.view;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -13,6 +13,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+
+import fr.eq3.nose.spot.items.DatabaseRequest;
+import fr.eq3.nose.spot.items.ImageItem;
 
 public class ProgressiveImageLoader {
 
@@ -64,11 +67,6 @@ public class ProgressiveImageLoader {
             }
         }
         return true;
-    }
-
-
-    public void reset() {
-        cursor = 0;
     }
 
     private class Loader implements Runnable{

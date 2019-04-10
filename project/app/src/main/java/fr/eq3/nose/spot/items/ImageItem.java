@@ -16,7 +16,7 @@ public class ImageItem {
         return image;
     }
 
-    void setImage(Bitmap image) {
+    public void setImage(Bitmap image) {
         this.image = image;
     }
 
@@ -24,7 +24,7 @@ public class ImageItem {
         return title;
     }
 
-    void setTitle(String title) {
+    public void setTitle(String title) {
         this.title = title;
     }
 

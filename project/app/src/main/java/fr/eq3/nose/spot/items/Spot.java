@@ -7,8 +7,7 @@ import java.util.ArrayList;
 public interface Spot {
     String getName();
     ArrayList<ImageItem> getItems();
-    void addItem(Context context, ImageItem imageItem);
-    boolean loadMore(int totalItems, boolean isNeededToWait);
+    void addItem(ImageItem imageItem);
     long getId();
     double getLat();
     double getLong();
