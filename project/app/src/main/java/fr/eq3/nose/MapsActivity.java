@@ -61,10 +61,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+        intentThatCalled = getIntent();
+        voice2text = intentThatCalled.getStringExtra("v2txt");
+        getLocation();
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         MapFragment map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map));
         map.getMapAsync(this);
-     //   intentThatCalled = getIntent();
         initializeMenu();
     }
 
@@ -191,7 +195,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
             // Permission to access the location is missing.
-            ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_LOCATION_REQUEST_CODE);
+ //           ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_LOCATION_REQUEST_CODE);
             return false;
         } else if (mMap != null) {
             // Access to the location has been granted to the app.
@@ -200,6 +204,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             myLocation=locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
             return true;
         }
+        return false;
     }
 
     //https://stackoverflow.com/questions/32290045/error-invoke-virtual-method-double-android-location-location-getlatitude-on
@@ -207,7 +212,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if (isLocationEnabled(MapsActivity.this)) {
             locationManager = (LocationManager)  this.getSystemService(Context.LOCATION_SERVICE);
             criteria = new Criteria();
-            bestProvider = String.valueOf(locationManager.getBestProvider(criteria, true)).toString();
+            bestProvider = String.valueOf(locationManager.getBestProvider(criteria, true));
 
             //You can still do this if you like, you might get lucky:
             Location location = locationManager.getLastKnownLocation(bestProvider);
@@ -215,6 +220,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 Log.e("TAG", "GPS is on");
                 latitude = location.getLatitude();
                 longitude = location.getLongitude();
+                myLocation=location;
                 Toast.makeText(MapsActivity.this, "latitude:" + latitude + " longitude:" + longitude, Toast.LENGTH_SHORT).show();
                 searchNearestPlace(voice2text);
             }
@@ -227,7 +233,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         {
             //prompt user to enable location....
             //.................
+            ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_LOCATION_REQUEST_CODE);
+
         }
+    }
+
+    public void searchNearestPlace(String v2txt) {
+        //.....
     }
 
     /**
