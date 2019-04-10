@@ -25,7 +25,7 @@ import fr.eq3.nose.spot.view.ProgressiveImageLoader;
 
 public class DatabaseRequest extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "spots_db";
-    private static final int DATABASE_VERSION = 25;
+    private static final int DATABASE_VERSION = 26;
 
     private static final String TABLE_SPOTS = "spots";
     private static final String KEY_ID_SPOT = "id_spot";

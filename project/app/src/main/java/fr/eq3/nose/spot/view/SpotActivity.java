@@ -33,6 +33,44 @@ public class SpotActivity extends AppCompatActivity {
     private ProgressiveImageLoader progressiveImageLoader;
 
     @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.spot_view);
+        FloatingActionButton fab = findViewById(R.id.addButton);
+        fab.setOnClickListener(this::onAddButtonClick);
+
+        Intent intent = getIntent();
+        long spotId = intent.getLongExtra(SPOT_EXTRA, -1);
+        this.spot = new DatabaseRequest(this).getSpot(spotId);
+        this.progressiveImageLoader = new ProgressiveImageLoader(this, spotId, new Runnable() {
+            @Override
+            public void run() {
+                gridViewAdapter.notifyDataSetChanged();
+            }
+        });
+        TextView tv = findViewById(R.id.spot_view_name);
+        tv.setText(spot.getName());
+        initializeGridView();
+
+    }
+
+    private void initializeGridView(){
+        Log.i("DIM", "Initializing gridView");
+        this.gridView = findViewById(R.id.spot_view_galery);
+        this.gridViewAdapter = new GridViewAdapter(this, R.layout.spot_view_img, spot.getItems());
+        gridView.setAdapter(gridViewAdapter);
+        gridView.setOnScrollListener(new EndlessScrollListener(6) {
+            @Override
+            public boolean onLoadMore(int page, int totalItemsCount) {
+                return loadNextData(6, false);
+            }
+        });
+        Log.i("DIM", "gridView initialized");
+        loadNextData(8, true);
+    }
+
+
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == READ_REQUEST_CODE && resultCode == RESULT_OK) {
@@ -68,41 +106,9 @@ public class SpotActivity extends AppCompatActivity {
         startActivityForResult(intent, READ_REQUEST_CODE);
     }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.spot_view);
-        FloatingActionButton fab = findViewById(R.id.addButton);
-        fab.setOnClickListener(this::onAddButtonClick);
-
-        Intent intent = getIntent();
-        long spotId = intent.getLongExtra(SPOT_EXTRA, -1);
-        this.spot = new DatabaseRequest(this).getSpot(spotId);
-        this.progressiveImageLoader = new ProgressiveImageLoader(spotId, this);
-        TextView tv = findViewById(R.id.spot_view_name);
-        tv.setText(spot.getName());
-        initializeGridView();
-
-    }
-
-    private void initializeGridView(){
-        Log.i("DIM", "Initializing gridView");
-        this.gridView = findViewById(R.id.spot_view_galery);
-        this.gridViewAdapter = new GridViewAdapter(this, R.layout.spot_view_img, spot.getItems());
-        gridView.setAdapter(gridViewAdapter);
-        gridView.setOnScrollListener(new EndlessScrollListener(6) {
-            @Override
-            public boolean onLoadMore(int page, int totalItemsCount) {
-                return loadNextData(6, false);
-            }
-        });
-        Log.i("DIM", "gridView initialized");
-        loadNextData(8, true);
-    }
-
     private boolean loadNextData(int totalItems, boolean isNeededToWait){
         Log.i("DIM", "Loading more data");
-        Collection<ImageItem> imageItems = this.progressiveImageLoader.getNextElements(totalItems, isNeededToWait);
+        Collection<ImageItem> imageItems = this.progressiveImageLoader.getNextElements(totalItems);
         for(ImageItem img : imageItems){
             this.spot.addItem(img);
         }

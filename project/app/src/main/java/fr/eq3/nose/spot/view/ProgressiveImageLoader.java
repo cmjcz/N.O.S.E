@@ -2,7 +2,9 @@ package fr.eq3.nose.spot.view;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.os.AsyncTask;
 import android.util.Log;
+import android.util.Pair;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -23,18 +25,18 @@ public class ProgressiveImageLoader {
 
     private final long spotId;
     private final Context context;
-    private final ExecutorService threads = Executors.newCachedThreadPool();
+    private final Runnable postExecute;
     private List<Integer> ids = null;
 
     private int cursor = 0;
 
-    ProgressiveImageLoader(long spotId, Context context) {
+    ProgressiveImageLoader(Context context, long spotId, Runnable postExecute) {
         this.spotId = spotId;
         this.context = context;
+        this.postExecute = postExecute;
     }
 
-    Collection<ImageItem> getNextElements(int nbElements, boolean isNeededToWait) {
-        final HashSet<Future> threads = new HashSet<>();
+    Collection<ImageItem> getNextElements(int nbElements) {
         final ArrayList<ImageItem> imageLoaded = new ArrayList<>();
         if(ids == null)
             this.ids = new DatabaseRequest(this.context).getItemsIdsOfSpot(this.spotId);
@@ -42,50 +44,46 @@ public class ProgressiveImageLoader {
         for(i = cursor; i - cursor <nbElements && i < ids.size(); ++i){
             ImageItem imageItem = new DatabaseRequest(this.context).getImage(-1);
             imageLoaded.add(imageItem);
-            Loader loader = new Loader(ids.get(i), imageItem);
-            Future thread = this.threads.submit(loader);
-            threads.add(thread);
+            Loader loader = new Loader();
+            loader.execute(new Pair<>(i, imageItem));
         }
         cursor = i;
-        if(isNeededToWait){
-            if(!wait_threads(threads))
-                return null;
-        }
         return imageLoaded;
     }
 
-    private boolean wait_threads(Set<Future> threads){
-        for(Future t : threads){
-            try {
-                t.get();
-            } catch (InterruptedException e) {
-                Log.i("DIM", "Error : loading interrupted. " + e.getMessage());
-                return false;
-            } catch (ExecutionException e){
-                Log.i("DIM", "Error : execution exception when loading image. " + e.getMessage());
-                return false;
+//    private boolean wait_threads(Set<Future> threads){
+//        for(Future t : threads){
+//            try {
+//                t.get();
+//            } catch (InterruptedException e) {
+//                Log.i("DIM", "Error : loading interrupted. " + e.getMessage());
+//                return false;
+//            } catch (ExecutionException e){
+//                Log.i("DIM", "Error : execution exception when loading image. " + e.getMessage());
+//                return false;
+//            }
+//        }
+//        return true;
+//    }
+
+    private class Loader extends AsyncTask<Pair<Integer, ImageItem>, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Pair<Integer, ImageItem>... pairs) {
+            for(Pair<Integer, ImageItem> pair : pairs){
+                final int ressourcesId = pair.first;
+                final ImageItem imageItem = pair.second;
+                ImageItem img = new DatabaseRequest(ProgressiveImageLoader.this.context).getImage(ressourcesId);
+                imageItem.setImage(img.getImage());
+                imageItem.setTitle(img.getTitle());
             }
-        }
-        return true;
-    }
-
-    private class Loader implements Runnable{
-        private final int ressourcesId;
-        private final ImageItem imageItem;
-
-        Loader(int ressourceId, ImageItem imageItem) {
-            this.ressourcesId = ressourceId;
-            this.imageItem = imageItem;
+            return null;
         }
 
         @Override
-        public void run() {
-            ImageItem img = new DatabaseRequest(ProgressiveImageLoader.this.context).getImage(ressourcesId);
-            int dim = Math.max(img.getImage().getWidth(), img.getImage().getHeight());
-            dim /= IMAGE_SIZE;
-            Bitmap bitmap = Bitmap.createScaledBitmap(img.getImage(), img.getImage().getWidth() / dim, img.getImage().getHeight() / dim, false);
-            imageItem.setImage(bitmap);
-            imageItem.setTitle(img.getTitle());
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            postExecute.run();
         }
     }
 }
