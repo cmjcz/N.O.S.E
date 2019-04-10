@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -12,6 +13,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -43,6 +45,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static final float MIN_DISTANCE = 0;
     private ArrayList<Spot> spotList_tmp = new ArrayList<>();
     private ArrayList<CircleOptions> influenceZone_tmp = new ArrayList<>();
+    //Requete de localisation
+    private Intent intentThatCalled;
+    private Criteria criteria;
+    private double longitude;
+    private double latitude;
+    private String bestProvider;
+    private String voice2text;
     //About the menu
     FloatingActionMenu menuMap;
     FloatingActionButton option_mapTerrain, option_mapNormal, option_mapSatelite, option_addSpot;
@@ -55,6 +64,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         MapFragment map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map));
         map.getMapAsync(this);
+     //   intentThatCalled = getIntent();
         initializeMenu();
     }
 
@@ -177,6 +187,48 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //---------------------------------METHODS CREATED ESPACIALLY FOR THIS PROJECT------------------------------------------------------
     //TODO//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    private boolean isLocationEnabled(Context context) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            // Permission to access the location is missing.
+            ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_LOCATION_REQUEST_CODE);
+            return false;
+        } else if (mMap != null) {
+            // Access to the location has been granted to the app.
+            mMap.setMyLocationEnabled(true);
+            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, MIN_TIME, MIN_DISTANCE, this);
+            myLocation=locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+            return true;
+        }
+    }
+
+    //https://stackoverflow.com/questions/32290045/error-invoke-virtual-method-double-android-location-location-getlatitude-on
+    protected void getLocation() {
+        if (isLocationEnabled(MapsActivity.this)) {
+            locationManager = (LocationManager)  this.getSystemService(Context.LOCATION_SERVICE);
+            criteria = new Criteria();
+            bestProvider = String.valueOf(locationManager.getBestProvider(criteria, true)).toString();
+
+            //You can still do this if you like, you might get lucky:
+            Location location = locationManager.getLastKnownLocation(bestProvider);
+            if (location != null) {
+                Log.e("TAG", "GPS is on");
+                latitude = location.getLatitude();
+                longitude = location.getLongitude();
+                Toast.makeText(MapsActivity.this, "latitude:" + latitude + " longitude:" + longitude, Toast.LENGTH_SHORT).show();
+                searchNearestPlace(voice2text);
+            }
+            else{
+                //This is what you need:
+                locationManager.requestLocationUpdates(bestProvider, 1000, 0, this);
+            }
+        }
+        else
+        {
+            //prompt user to enable location....
+            //.................
+        }
+    }
 
     /**
      * Check for the permissions and initialize myLocation variable with the last known location
