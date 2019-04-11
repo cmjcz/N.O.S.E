@@ -64,7 +64,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         intentThatCalled = getIntent();
         voice2text = intentThatCalled.getStringExtra("v2txt");
-        getLocation();
+    //    getLocation();
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         MapFragment map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map));
@@ -113,7 +113,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         //Enable to track the location
-        enableMyLocation();
+ //       enableMyLocation();
+        getLocation();
         LatLng currentPosition = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
         //Map type
         mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
@@ -193,40 +194,41 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private boolean isLocationEnabled(Context context) {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
+                == PackageManager.PERMISSION_GRANTED) {
             // Permission to access the location is missing.
  //           ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_LOCATION_REQUEST_CODE);
-            return false;
-        } else if (mMap != null) {
+            return true;
+        }/* else if (mMap != null) {
             // Access to the location has been granted to the app.
             mMap.setMyLocationEnabled(true);
             locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, MIN_TIME, MIN_DISTANCE, this);
             myLocation=locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
             return true;
-        }
+        }*/
         return false;
     }
 
     //https://stackoverflow.com/questions/32290045/error-invoke-virtual-method-double-android-location-location-getlatitude-on
     protected void getLocation() {
         if (isLocationEnabled(MapsActivity.this)) {
+            mMap.setMyLocationEnabled(true);
             locationManager = (LocationManager)  this.getSystemService(Context.LOCATION_SERVICE);
             criteria = new Criteria();
             bestProvider = String.valueOf(locationManager.getBestProvider(criteria, true));
 
             //You can still do this if you like, you might get lucky:
-            Location location = locationManager.getLastKnownLocation(bestProvider);
-            if (location != null) {
-                Log.e("TAG", "GPS is on");
-                latitude = location.getLatitude();
-                longitude = location.getLongitude();
-                myLocation=location;
-                Toast.makeText(MapsActivity.this, "latitude:" + latitude + " longitude:" + longitude, Toast.LENGTH_SHORT).show();
+            myLocation = locationManager.getLastKnownLocation(bestProvider);
+            if (myLocation != null) {
+                Toast.makeText(MapsActivity.this,"LOCALISATION : OK", Toast.LENGTH_SHORT).show();
                 searchNearestPlace(voice2text);
             }
             else{
                 //This is what you need:
-                locationManager.requestLocationUpdates(bestProvider, 1000, 0, this);
+                locationManager.requestLocationUpdates(bestProvider, MIN_TIME, MIN_DISTANCE, this);
+                myLocation=locationManager.getLastKnownLocation(bestProvider);
+                if(myLocation==null){
+                    getLocation();
+                }
             }
         }
         else
