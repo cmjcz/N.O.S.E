@@ -192,38 +192,30 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //---------------------------------METHODS CREATED ESPACIALLY FOR THIS PROJECT------------------------------------------------------
     //TODO//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    /**
+     * The stattement is true if ACCESS_FINE_LOCATION has been granted
+     * @param context
+     * @return
+     */
     private boolean isLocationEnabled(Context context) {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            // Permission to access the location is missing.
- //           ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_LOCATION_REQUEST_CODE);
-            return true;
-        }/* else if (mMap != null) {
-            // Access to the location has been granted to the app.
-            mMap.setMyLocationEnabled(true);
-            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, MIN_TIME, MIN_DISTANCE, this);
-            myLocation=locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-            return true;
-        }*/
-        return false;
+        return (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED);
     }
 
-    //https://stackoverflow.com/questions/32290045/error-invoke-virtual-method-double-android-location-location-getlatitude-on
+    /**
+     * Find the current location of the user or ask for permissions
+     */
     protected void getLocation() {
         if (isLocationEnabled(MapsActivity.this)) {
             mMap.setMyLocationEnabled(true);
             locationManager = (LocationManager)  this.getSystemService(Context.LOCATION_SERVICE);
             criteria = new Criteria();
             bestProvider = String.valueOf(locationManager.getBestProvider(criteria, true));
-
-            //You can still do this if you like, you might get lucky:
             myLocation = locationManager.getLastKnownLocation(bestProvider);
             if (myLocation != null) {
                 Toast.makeText(MapsActivity.this,"LOCALISATION : OK", Toast.LENGTH_SHORT).show();
-                searchNearestPlace(voice2text);
             }
             else{
-                //This is what you need:
                 locationManager.requestLocationUpdates(bestProvider, MIN_TIME, MIN_DISTANCE, this);
                 myLocation=locationManager.getLastKnownLocation(bestProvider);
                 if(myLocation==null){
@@ -233,33 +225,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         else
         {
-            //prompt user to enable location....
-            //.................
+            //Demande d'activation du service de localisation
             ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_LOCATION_REQUEST_CODE);
 
         }
     }
 
-    public void searchNearestPlace(String v2txt) {
-        //.....
-    }
 
-    /**
-     * Check for the permissions and initialize myLocation variable with the last known location
-     */
-    private void enableMyLocation() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            // Permission to access the location is missing.
-            ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_LOCATION_REQUEST_CODE);
-
-        } else if (mMap != null) {
-            // Access to the location has been granted to the app.
-            mMap.setMyLocationEnabled(true);
-            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, MIN_TIME, MIN_DISTANCE, this);
-            myLocation=locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-        }
-    }
 
     /**
      * Avoid the area around the current location to duplicate itself
