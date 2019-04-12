@@ -1,6 +1,8 @@
 package fr.eq3.nose.spot.items;
 
 import android.content.Context;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -74,5 +76,43 @@ public final class SpotImpl implements Spot{
     @Override
     public int getInfluenceLvl() {
         return this.influenceLvl;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.name);
+        dest.writeString(this.description);
+        dest.writeLong(this.id);
+        dest.writeList(this.items);
+        dest.writeDouble(this.lattitude);
+        dest.writeDouble(this.longitude);
+        dest.writeInt(this.influenceLvl);
+
+    }
+
+    public static final Parcelable.Creator<SpotImpl> CREATOR
+            = new Parcelable.Creator<SpotImpl>() {
+        public SpotImpl createFromParcel(Parcel in) {
+            return new SpotImpl(in);
+        }
+
+        public SpotImpl[] newArray(int size) {
+            return new SpotImpl[size];
+        }
+    };
+
+    private SpotImpl(Parcel in) {
+        this.name = in.readString();
+        this.description = in.readString();
+        this.id = in.readLong();
+        this.items = in.readArrayList(ImageItem.class.getClassLoader());
+        this.lattitude = in.readDouble();
+        this.longitude = in.readLong();
+        this.influenceLvl = in.readInt();
     }
 }
