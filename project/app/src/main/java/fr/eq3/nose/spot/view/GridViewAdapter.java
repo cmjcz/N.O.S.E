@@ -42,9 +42,9 @@ class GridViewAdapter extends ArrayAdapter {
         }
 
         ImageItem item = data.get(position);
-        String title = item.getTitle();
+        String title = item.getName();
         holder.imageTitle.setText(title);
-        holder.image.setImageBitmap(item.getImage());
+        holder.image.setImageBitmap(item.getData());
         return row;
     }
 

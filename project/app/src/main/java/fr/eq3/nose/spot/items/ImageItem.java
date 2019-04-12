@@ -2,29 +2,33 @@ package fr.eq3.nose.spot.items;
 
 import android.graphics.Bitmap;
 
-public class ImageItem {
+public class ImageItem implements Element<Bitmap>{
     private Bitmap image;
     private String title;
+    private String desc;
 
     public ImageItem(Bitmap image, String title) {
         super();
         this.image = image;
         this.title = title;
+        this.desc = "";
     }
 
-    public Bitmap getImage() {
+    public Bitmap getData() {
         return image;
     }
 
-    public void setImage(Bitmap image) {
+    public void setData(Bitmap image) {
         this.image = image;
     }
 
-    public String getTitle() {
+    @Override
+    public String getName() {
         return title;
     }
 
-    public void setTitle(String title) {
+    @Override
+    public void setName(String name) {
         this.title = title;
     }
 
@@ -37,4 +41,13 @@ public class ImageItem {
         return new ImageItem(bitmap, title);
     }
 
+    @Override
+    public String getDesription() {
+        return desc;
+    }
+
+    @Override
+    public void setDescription(String description) {
+        this.desc = description;
+    }
 }

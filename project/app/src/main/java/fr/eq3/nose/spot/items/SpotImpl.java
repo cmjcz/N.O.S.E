@@ -9,7 +9,8 @@ import fr.eq3.nose.spot.view.ProgressiveImageLoader;
 
 public final class SpotImpl implements Spot{
 
-    private final String name;
+    private String name;
+    private String description;
     private final long id;
     private final ArrayList<ImageItem> items;
     private final double lattitude, longitude;
@@ -18,6 +19,7 @@ public final class SpotImpl implements Spot{
     SpotImpl(long id, String name, double lat, double longitude, int influenceLvl) {
         this.id = id;
         this.name = name;
+        this.description = "";
         this.items = new ArrayList<>();
         this.lattitude = lat;
         this.longitude = longitude;
@@ -27,6 +29,21 @@ public final class SpotImpl implements Spot{
     @Override
     public String getName() {
         return name;
+    }
+
+    @Override
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String getDesription() {
+        return description;
+    }
+
+    @Override
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     @Override

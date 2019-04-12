@@ -53,8 +53,8 @@ public final class ProgressiveImageLoader {
                 final int ressourcesId = pair.first;
                 final ImageItem imageItem = pair.second;
                 ImageItem img = new DatabaseRequest(ProgressiveImageLoader.this.context).getImage(ressourcesId);
-                imageItem.setImage(img.getImage());
-                imageItem.setTitle(img.getTitle());
+                imageItem.setData(img.getData());
+                imageItem.setName(img.getName());
             }
             return null;
         }

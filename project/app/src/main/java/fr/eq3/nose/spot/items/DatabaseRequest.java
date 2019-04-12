@@ -21,11 +21,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import fr.eq3.nose.spot.view.ProgressiveImageLoader;
-
 public class DatabaseRequest extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "spots_db";
-    private static final int DATABASE_VERSION = 39;
+    private static final int DATABASE_VERSION = 40;
 
     private static final String TABLE_SPOTS = "spots";
     private static final String KEY_ID_SPOT = "id_spot";
@@ -186,7 +184,7 @@ public class DatabaseRequest extends SQLiteOpenHelper {
     }
 
     private long putImage(SQLiteDatabase db, ImageItem imageItem, long spotId){
-        long itemId = putItem(db, imageItem.getTitle(), "", spotId);
+        long itemId = putItem(db, imageItem.getName(), "", spotId);
         ContentValues image_values = new ContentValues();
         putImageInFile(imageItem, itemId);
         image_values.put(KEY_ID_ITEM, itemId);
@@ -197,7 +195,7 @@ public class DatabaseRequest extends SQLiteOpenHelper {
 
     private void putImageInFile(ImageItem imageItem, long itemId){
         ByteArrayOutputStream os = new ByteArrayOutputStream();
-        imageItem.getImage().compress(Bitmap.CompressFormat.PNG, 0, os);
+        imageItem.getData().compress(Bitmap.CompressFormat.PNG, 0, os);
         byte[] imageBytes = os.toByteArray();
         File path = this.context.getFilesDir();
         File img = new File(path, itemId + IMAGE_EXT);
