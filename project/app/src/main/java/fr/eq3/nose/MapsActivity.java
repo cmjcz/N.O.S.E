@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -40,10 +41,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     private LocationManager locationManager;
     private Location myLocation;
-//    private LatLngBounds myArea;
     private static final long MIN_TIME = 0;
     private static final float MIN_DISTANCE = 0;
     private Set<Spot> spot_cache = new HashSet<>();
+    //Requete de localisation
+    private Intent intentThatCalled;
+    private Criteria criteria;
+    private String bestProvider;
+    private String voice2text;
     //About the menu
     FloatingActionMenu menuMap;
     FloatingActionButton option_mapTerrain, option_mapNormal, option_mapSatelite, option_addSpot;
@@ -53,6 +58,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+        intentThatCalled = getIntent();
+        voice2text = intentThatCalled.getStringExtra("v2txt");
+    //    getLocation();
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         MapFragment map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map));
         map.getMapAsync(this);
@@ -69,20 +79,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         option_mapTerrain.setOnClickListener(v -> {
             //TODO something when floating action menu first item clicked
             mMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
+            menuMap.close(true);
         });
         option_mapNormal.setOnClickListener(v -> {
             //TODO something when floating action menu second item clicked
             mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+            menuMap.close(true);
+
         });
         option_mapSatelite.setOnClickListener(v -> {
             //TODO something when floating action menu third item clicked
             mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
+            menuMap.close(true);
+
         });
         option_addSpot.setOnClickListener(v -> {
             //TODO something when floating action menu third item clicked
+
             DatabaseRequest dbr = new DatabaseRequest(this);
             Spot spot = dbr.createSpot("Spot", "", new LatLng(myLocation.getLatitude(), myLocation.getLongitude()));
             addSpotOnMap(spot);
+            menuMap.close(true);
         });
     }
 
@@ -96,7 +113,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         //Enable to track the location
-        enableMyLocation();
+ //       enableMyLocation();
+        getLocation();
         LatLng currentPosition = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
         refreshSpotsCache();
         //Map type
@@ -168,21 +186,45 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //TODO//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Check for the permissions and initialize myLocation variable with the last known location
+     * The stattement is true if ACCESS_FINE_LOCATION has been granted
+     * @param context
+     * @return
      */
-    private void enableMyLocation() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            // Permission to access the location is missing.
+    private boolean isLocationEnabled(Context context) {
+        return (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED);
+    }
+
+    /**
+     * Find the current location of the user or ask for permissions
+     */
+    protected void getLocation() {
+        if (isLocationEnabled(MapsActivity.this)) {
+            mMap.setMyLocationEnabled(true);
+            locationManager = (LocationManager)  this.getSystemService(Context.LOCATION_SERVICE);
+            criteria = new Criteria();
+            bestProvider = String.valueOf(locationManager.getBestProvider(criteria, true));
+            myLocation = locationManager.getLastKnownLocation(bestProvider);
+            if (myLocation != null) {
+                Toast.makeText(MapsActivity.this,"LOCALISATION : OK", Toast.LENGTH_SHORT).show();
+            }
+            else{
+                locationManager.requestLocationUpdates(bestProvider, MIN_TIME, MIN_DISTANCE, this);
+                myLocation=locationManager.getLastKnownLocation(bestProvider);
+                if(myLocation==null){
+                    getLocation();
+                }
+            }
+        }
+        else
+        {
+            //Demande d'activation du service de localisation
             ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_LOCATION_REQUEST_CODE);
 
-        } else if (mMap != null) {
-            // Access to the location has been granted to the app.
-            mMap.setMyLocationEnabled(true);
-            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, MIN_TIME, MIN_DISTANCE, this);
-            myLocation=locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
         }
     }
+
+
 
     /**
      * Avoid the area around the current location to duplicate itself
