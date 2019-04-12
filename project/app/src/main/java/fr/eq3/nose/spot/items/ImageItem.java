@@ -28,7 +28,7 @@ public class ImageItem {
         this.title = title;
     }
 
-    static ImageItem createEmptyImageItem(int width, int heigh, String title){
+    public static ImageItem createEmptyImageItem(int width, int heigh, String title){
         int[] pixels = new int[width * heigh];
         for(int i = 0; i < width * heigh; ++i){
             pixels[i] = 0;

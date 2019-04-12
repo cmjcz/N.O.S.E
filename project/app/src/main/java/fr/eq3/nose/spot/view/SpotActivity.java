@@ -56,18 +56,28 @@ public final class SpotActivity extends AppCompatActivity {
     }
 
     private void initializeGridView(){
-        Log.i("DIM", "Initializing gridView");
         this.gridView = findViewById(R.id.spot_view_galery);
         this.gridViewAdapter = new GridViewAdapter(this, R.layout.spot_view_img, spot.getItems());
         gridView.setAdapter(gridViewAdapter);
         gridView.setOnScrollListener(new EndlessScrollListener(6) {
             @Override
             public boolean onLoadMore(int page, int totalItemsCount) {
-                return loadNextData(6, false);
+                return loadNextData(6);
             }
         });
-        Log.i("DIM", "gridView initialized");
-        loadNextData(8, true);
+        loadNextData(8);
+    }
+
+    private boolean loadNextData(int totalItems){
+        Collection<ImageItem> imageItems = this.progressiveImageLoader.getNextElements(totalItems);
+        for(ImageItem img : imageItems){
+            this.spot.addItem(img);
+        }
+        boolean isMoreItemLoaded = !imageItems.isEmpty();
+        if(isMoreItemLoaded){
+            gridViewAdapter.notifyDataSetChanged();
+        }
+        return isMoreItemLoaded;
     }
 
 
@@ -77,20 +87,12 @@ public final class SpotActivity extends AppCompatActivity {
         if (requestCode == READ_REQUEST_CODE && resultCode == RESULT_OK) {
             if (data != null) {
                 Uri uri = data.getData();
+                ImageItem img = ImageItem.createEmptyImageItem(128, 128, "Loading");
                 AddImageAsyncTask task = new AddImageAsyncTask();
                 task.execute(uri);
             }
         }
 
-    }
-
-    private Bitmap getBitmapFromUri(Uri uri) throws IOException {
-        ParcelFileDescriptor parcelFileDescriptor =
-                getContentResolver().openFileDescriptor(uri, "r");
-        FileDescriptor fileDescriptor = parcelFileDescriptor.getFileDescriptor();
-        Bitmap image = BitmapFactory.decodeFileDescriptor(fileDescriptor);
-        parcelFileDescriptor.close();
-        return image;
     }
 
     private void onAddButtonClick(View view) {
@@ -100,35 +102,34 @@ public final class SpotActivity extends AppCompatActivity {
         startActivityForResult(intent, READ_REQUEST_CODE);
     }
 
-    private boolean loadNextData(int totalItems, boolean isNeededToWait){
-        Log.i("DIM", "Loading more data");
-        Collection<ImageItem> imageItems = this.progressiveImageLoader.getNextElements(totalItems);
-        for(ImageItem img : imageItems){
-            this.spot.addItem(img);
-        }
-        boolean isMoreItemLoaded = !imageItems.isEmpty();
-        if(isMoreItemLoaded){
-            gridViewAdapter.notifyDataSetChanged();
-        }
-        Log.i("DIM", isMoreItemLoaded ? "Data loaded !" : "Error when loading new data");
-        return isMoreItemLoaded;
-    }
-
     private final class AddImageAsyncTask extends AsyncTask<Uri, Void, Void>{
 
         @Override
         protected Void doInBackground(Uri... uris) {
+            Uri uri = uris[0];
+            ImageItem imageItem;
             try {
-                Uri uri = uris[0];
                 Bitmap img = getBitmapFromUri(uri);
-                ImageItem imageItem = new ImageItem(img, "");
-                SpotActivity.this.spot.addItem(imageItem);
+                imageItem = new ImageItem(img, "loading");
                 new DatabaseRequest(SpotActivity.this).putImage(imageItem, SpotActivity.this.spot.getId());
-                gridViewAdapter.notifyDataSetChanged();
             } catch (IOException e) {
                 Log.i("DIM", e.getMessage());
             }
             return null;
+        }
+
+        private Bitmap getBitmapFromUri(Uri uri) throws IOException {
+            ParcelFileDescriptor parcelFileDescriptor =
+                    getContentResolver().openFileDescriptor(uri, "r");
+            FileDescriptor fileDescriptor = parcelFileDescriptor.getFileDescriptor();
+            Bitmap image = BitmapFactory.decodeFileDescriptor(fileDescriptor);
+            parcelFileDescriptor.close();
+            return image;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            gridViewAdapter.notifyDataSetChanged();
         }
     }
 }

@@ -39,16 +39,6 @@ public final class SpotImpl implements Spot{
         this.items.add(imageItem);
     }
 
-//    @Override
-//    public boolean loadMore(int totalItems, boolean isNeededToWait) {
-//        Collection<ImageItem> elements = progressiveLoader.getNextElements(totalItems, isNeededToWait);
-//        if(elements != null){
-//            this.items.addAll(elements);
-//            return true;
-//        }
-//        return false;
-//    }
-
     @Override
     public long getId() {
         return this.id;
