@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import fr.eq3.nose.spot.items.exceptions.ImageNotFoundException;
+
 public class DatabaseRequest extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "spots_db";
     private static final int DATABASE_VERSION = 40;
@@ -129,16 +131,15 @@ public class DatabaseRequest extends SQLiteOpenHelper {
         return ids;
     }
 
-    public ImageItem getImage(int id) {
+    public ImageItem getImage(int id) throws ImageNotFoundException {
 
         if(id == -1){
-            return ImageItem.createEmptyImageItem(1, 1, "null");
+            return new ImageItem("null");
         }else{
             try {
                 return getImageFromFile(id);
             } catch (IOException e) {
-                Log.i("DIM", "Error when getting the image. Empty image given.");
-                return ImageItem.createEmptyImageItem(1, 1, "Not found");
+                throw new ImageNotFoundException("Image not found");
             }
 
         }

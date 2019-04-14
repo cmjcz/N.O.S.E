@@ -87,7 +87,6 @@ public final class SpotActivity extends AppCompatActivity {
         if (requestCode == READ_REQUEST_CODE && resultCode == RESULT_OK) {
             if (data != null) {
                 Uri uri = data.getData();
-                ImageItem img = ImageItem.createEmptyImageItem(128, 128, "Loading");
                 AddImageAsyncTask task = new AddImageAsyncTask();
                 task.execute(uri);
             }

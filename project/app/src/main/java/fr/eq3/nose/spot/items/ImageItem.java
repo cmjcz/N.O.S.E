@@ -6,18 +6,25 @@ import android.os.Parcelable;
 
 public class ImageItem implements Element<Bitmap>{
     private Bitmap image;
-    private String title;
+    private String name;
     private String desc;
 
     public ImageItem(Bitmap image, String title) {
         super();
         this.image = image;
-        this.title = title;
+        this.name = title;
+        this.desc = "";
+    }
+
+    public ImageItem(String title){
+        super();
+        this.image = createEmptyBitmap(128, 128);
+        this.name = title;
         this.desc = "";
     }
 
     public ImageItem(Parcel in) {
-        this.title = in.readString();
+        this.name = in.readString();
         this.desc = in.readString();
         this.image = in.readParcelable(Bitmap.class.getClassLoader());
     }
@@ -32,21 +39,21 @@ public class ImageItem implements Element<Bitmap>{
 
     @Override
     public String getName() {
-        return title;
+        return name;
     }
 
     @Override
     public void setName(String name) {
-        this.title = title;
+        this.name = name;
     }
 
-    public static ImageItem createEmptyImageItem(int width, int heigh, String title){
+    private static Bitmap createEmptyBitmap(int width, int heigh){
         int[] pixels = new int[width * heigh];
         for(int i = 0; i < width * heigh; ++i){
             pixels[i] = 0;
         }
         Bitmap bitmap = Bitmap.createBitmap(pixels, width, heigh, Bitmap.Config.ARGB_4444);
-        return new ImageItem(bitmap, title);
+        return bitmap;
     }
 
     @Override
@@ -66,7 +73,7 @@ public class ImageItem implements Element<Bitmap>{
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(this.title);
+        dest.writeString(this.name);
         dest.writeString(this.desc);
         dest.writeParcelable(this.image, flags);
     }
