@@ -54,8 +54,11 @@ public class SpotCreatorActivity extends AppCompatActivity {
                 long id = data.getLongExtra(SpotActivity.SPOT_EXTRA, -1);
                 intent.putExtra(SpotActivity.SPOT_EXTRA, id);
                 this.setResult(RESULT_OK, intent);
-                finish();
             }
+        }
+        if(requestCode == IMG_CREATOR_CODE){
+            this.setResult(RESULT_OK);
+            finish();
         }
     }
 }
