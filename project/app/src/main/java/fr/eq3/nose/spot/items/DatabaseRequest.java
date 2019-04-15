@@ -25,7 +25,7 @@ import fr.eq3.nose.spot.items.exceptions.ImageNotFoundException;
 
 public class DatabaseRequest extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "spots_db";
-    private static final int DATABASE_VERSION = 62;
+    private static final int DATABASE_VERSION = 64;
 
     private static final String TABLE_SPOTS = "spots";
     private static final String KEY_ID_SPOT = "id_spot";
@@ -137,15 +137,27 @@ public class DatabaseRequest extends SQLiteOpenHelper {
             return new ImageItem("null");
         }else{
             try {
-                return getImageFromFile(id);
+                SQLiteDatabase db = getReadableDatabase();
+                String selectQuery = "SELECT " + KEY_NAME + ", " + KEY_COMMENTARY + " FROM " + TABLE_ITEMS +
+                        " WHERE " + TABLE_ITEMS + "."+  KEY_ID_ITEM + " = " + id;
+                Cursor c = db.rawQuery(selectQuery, null);
+                if(c == null ){
+                    throw new ImageNotFoundException("Image not found on database");
+                }
+                if(c.moveToFirst()){
+                    String name = c.getString(c.getColumnIndex(KEY_NAME));
+                    String desc = c.getString(c.getColumnIndex(KEY_COMMENTARY));
+                    return getImageFromFile(id, name, desc);
+                }
+                throw new ImageNotFoundException("Image not found on database");
             } catch (IOException e) {
-                throw new ImageNotFoundException("Image not found");
+                throw new ImageNotFoundException("Image not found on system storage");
             }
 
         }
     }
 
-    private ImageItem getImageFromFile(int id) throws IOException {
+    private ImageItem getImageFromFile(int id, String name, String desc) throws IOException {
         File path = this.context.getFilesDir();
         File img = new File(path, id + IMAGE_EXT);
         FileInputStream in;
@@ -154,7 +166,7 @@ public class DatabaseRequest extends SQLiteOpenHelper {
         in.read(bytes);
         in.close();
         Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-        return new ImageItem(bitmap, "Image #"+id);
+        return new ImageItem(bitmap, name);
     }
 
     public Spot createSpot(String name, String description, LatLng position){

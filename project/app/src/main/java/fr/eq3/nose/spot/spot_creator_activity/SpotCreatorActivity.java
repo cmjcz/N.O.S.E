@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
 import android.widget.EditText;
 
 import fr.eq3.nose.R;
@@ -16,9 +17,9 @@ public class SpotCreatorActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.spot_creator_view);
+        setContentView(R.layout.descriptible_creator_view);
         FloatingActionButton validate = findViewById(R.id.validateButton);
-        validate.setOnClickListener(v -> validate());
+        validate.setOnClickListener(this::onClick);
     }
 
     private void validate() {
@@ -29,5 +30,9 @@ public class SpotCreatorActivity extends AppCompatActivity {
         intent.putExtra(KEY_DESC, desc.getText().toString());
         this.setResult(RESULT_OK, intent);
         finish();
+    }
+
+    private void onClick(View v) {
+        validate();
     }
 }

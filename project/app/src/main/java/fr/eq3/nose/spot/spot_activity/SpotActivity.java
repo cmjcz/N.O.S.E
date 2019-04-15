@@ -17,15 +17,17 @@ import android.widget.TextView;
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.concurrent.Future;
 
 import fr.eq3.nose.R;
 import fr.eq3.nose.spot.items.ImageItem;
 import fr.eq3.nose.spot.items.DatabaseRequest;
 import fr.eq3.nose.spot.items.Spot;
+import fr.eq3.nose.spot.spot_creator_activity.ImageItemCreatorActivity;
 
 public final class SpotActivity extends AppCompatActivity {
 
-    private static final int READ_REQUEST_CODE = 36;
+    private static final int CREATOR_REQUEST_CODE = 3587;
     public static final String SPOT_EXTRA = "spot_extra";
 
     private GridView gridView;
@@ -84,51 +86,17 @@ public final class SpotActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == READ_REQUEST_CODE && resultCode == RESULT_OK) {
-            if (data != null) {
-                Uri uri = data.getData();
-                AddImageAsyncTask task = new AddImageAsyncTask();
-                task.execute(uri);
-            }
+        if (requestCode == CREATOR_REQUEST_CODE && resultCode == RESULT_OK) {
+            gridViewAdapter.notifyDataSetChanged();
         }
 
     }
 
     private void onAddButtonClick(View view) {
-        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        intent.setType("image/*");
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        startActivityForResult(intent, READ_REQUEST_CODE);
+        Intent intent = new Intent(this, ImageItemCreatorActivity.class);
+        intent.putExtra(SPOT_EXTRA, this.spot.getId());
+        startActivityForResult(intent, CREATOR_REQUEST_CODE);
     }
 
-    private final class AddImageAsyncTask extends AsyncTask<Uri, Void, Void>{
 
-        @Override
-        protected Void doInBackground(Uri... uris) {
-            Uri uri = uris[0];
-            ImageItem imageItem;
-            try {
-                Bitmap img = getBitmapFromUri(uri);
-                imageItem = new ImageItem(img, "loading");
-                new DatabaseRequest(SpotActivity.this).putImage(imageItem, SpotActivity.this.spot.getId());
-            } catch (IOException e) {
-                Log.i("DIM", e.getMessage());
-            }
-            return null;
-        }
-
-        private Bitmap getBitmapFromUri(Uri uri) throws IOException {
-            ParcelFileDescriptor parcelFileDescriptor =
-                    getContentResolver().openFileDescriptor(uri, "r");
-            FileDescriptor fileDescriptor = parcelFileDescriptor.getFileDescriptor();
-            Bitmap image = BitmapFactory.decodeFileDescriptor(fileDescriptor);
-            parcelFileDescriptor.close();
-            return image;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            gridViewAdapter.notifyDataSetChanged();
-        }
-    }
 }
