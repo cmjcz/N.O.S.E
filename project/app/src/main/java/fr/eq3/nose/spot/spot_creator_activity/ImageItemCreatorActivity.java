@@ -56,6 +56,9 @@ public class ImageItemCreatorActivity extends AppCompatActivity {
                 EditText desc = findViewById(R.id.descTextField);
                 AddImageAsyncTask task = new AddImageAsyncTask(name.getText().toString(), desc.getText().toString(), this.spotId);
                 task.execute(uri);
+                Intent intent = new Intent();
+                intent.putExtra(SpotActivity.SPOT_EXTRA, this.spotId);
+                this.setResult(RESULT_OK, intent);
             }
         }
     }

@@ -25,7 +25,7 @@ import fr.eq3.nose.spot.items.exceptions.ImageNotFoundException;
 
 public class DatabaseRequest extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "spots_db";
-    private static final int DATABASE_VERSION = 70;
+    private static final int DATABASE_VERSION = 76;
 
     private static final String TABLE_SPOTS = "spots";
     private static final String KEY_ID_SPOT = "id_spot";

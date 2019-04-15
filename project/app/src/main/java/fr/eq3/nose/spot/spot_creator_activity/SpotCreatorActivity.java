@@ -13,9 +13,10 @@ import com.google.android.gms.maps.model.LatLng;
 import fr.eq3.nose.R;
 import fr.eq3.nose.spot.items.DatabaseRequest;
 import fr.eq3.nose.spot.items.Spot;
+import fr.eq3.nose.spot.spot_activity.SpotActivity;
 
 public class SpotCreatorActivity extends AppCompatActivity {
-    public static final String KEY_SPOT = "spot";
+    private static final int IMG_CREATOR_CODE = 12;
     public static final String KEY_POS = "pos";
     private LatLng mylocation;
 
@@ -35,13 +36,26 @@ public class SpotCreatorActivity extends AppCompatActivity {
         Spot spot = dbr.createSpot(name.getText().toString(),
                 desc.getText().toString(),
                 mylocation);
-        Intent intent = new Intent();
-        intent.putExtra(KEY_SPOT, spot);
-        this.setResult(RESULT_OK, intent);
-        finish();
+        Intent intent = new Intent(SpotCreatorActivity.this, ImageItemCreatorActivity.class);
+        intent.putExtra(SpotActivity.SPOT_EXTRA, spot.getId());
+        startActivityForResult(intent, IMG_CREATOR_CODE);
     }
 
     private void onClick(View v) {
         validate();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == IMG_CREATOR_CODE && resultCode == RESULT_OK){
+            if(data != null){
+                Intent intent = new Intent();
+                long id = data.getLongExtra(SpotActivity.SPOT_EXTRA, -1);
+                intent.putExtra(SpotActivity.SPOT_EXTRA, id);
+                this.setResult(RESULT_OK, intent);
+                finish();
+            }
+        }
     }
 }

@@ -283,7 +283,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if(requestCode == CREATE_SPOT_REQUEST){
             if(resultCode == RESULT_OK){
                 if(data != null){
-                    Spot spot = data.getParcelableExtra(SpotCreatorActivity.KEY_SPOT);
+                    long spotid = data.getLongExtra(SpotActivity.SPOT_EXTRA, -1);
+                    Spot spot = new DatabaseRequest(this).getSpot(spotid);
                     spot_cache.add(spot);
                     addSpotOnMap(spot);
                 }
