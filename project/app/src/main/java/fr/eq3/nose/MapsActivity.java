@@ -278,9 +278,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     /**
      * Create a spot on the database at the current position and add it on the map
      */
-    private void createSpot(String name){
+    private void createSpot(String name, String desc){
         DatabaseRequest dbr = new DatabaseRequest(this);
-        Spot spot = dbr.createSpot(name, "", new LatLng(myLocation.getLatitude(), myLocation.getLongitude()));
+        Spot spot = dbr.createSpot(name, desc, new LatLng(myLocation.getLatitude(), myLocation.getLongitude()));
         addSpotOnMap(spot);
         menuMap.close(true);
     }
@@ -291,7 +291,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if(requestCode == CREATE_SPOT_REQUEST && resultCode == RESULT_OK){
             if(data != null){
                 String name = data.getStringExtra(SpotCreatorActivity.KEY_NAME);
-                createSpot(name);
+                String desc = data.getStringExtra(SpotCreatorActivity.KEY_DESC);
+                createSpot(name, desc);
             }
         }
     }
