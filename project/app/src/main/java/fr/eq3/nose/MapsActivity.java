@@ -282,18 +282,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         DatabaseRequest dbr = new DatabaseRequest(this);
         Spot spot = dbr.createSpot(name, desc, new LatLng(myLocation.getLatitude(), myLocation.getLongitude()));
         addSpotOnMap(spot);
-        menuMap.close(true);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == CREATE_SPOT_REQUEST && resultCode == RESULT_OK){
-            if(data != null){
-                String name = data.getStringExtra(SpotCreatorActivity.KEY_NAME);
-                String desc = data.getStringExtra(SpotCreatorActivity.KEY_DESC);
-                createSpot(name, desc);
+        if(requestCode == CREATE_SPOT_REQUEST){
+            if(resultCode == RESULT_OK){
+                if(data != null){
+                    String name = data.getStringExtra(SpotCreatorActivity.KEY_NAME);
+                    String desc = data.getStringExtra(SpotCreatorActivity.KEY_DESC);
+                    createSpot(name, desc);
+                }
             }
+            menuMap.close(true);
         }
     }
 
