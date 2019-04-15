@@ -46,6 +46,14 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MapsActivity" />
         </activity>
+        <activity
+        android:name=".spot.spot_creator_activity.SpotCreatorActivity"
+        android:label="@string/app_name"
+        android:parentActivityName=".MapsActivity">
+        <meta-data
+            android:name="android.support.PARENT_ACTIVITY"
+            android:value=".MapsActivity" />
+    </activity>
     </application>
 
 </manifest>

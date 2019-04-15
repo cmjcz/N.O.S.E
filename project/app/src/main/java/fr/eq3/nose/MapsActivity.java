@@ -9,6 +9,7 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
@@ -33,10 +34,12 @@ import java.util.Set;
 import fr.eq3.nose.spot.items.DatabaseRequest;
 import fr.eq3.nose.spot.items.Spot;
 import fr.eq3.nose.spot.spot_activity.SpotActivity;
+import fr.eq3.nose.spot.spot_creator_activity.SpotCreatorActivity;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, LocationListener {
 
     private static final int MY_LOCATION_REQUEST_CODE = 101;
+    private static final int CREATE_SPOT_REQUEST = 64;
 
     private GoogleMap mMap;
     private LocationManager locationManager;
@@ -94,12 +97,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         });
         option_addSpot.setOnClickListener(v -> {
-            //TODO something when floating action menu third item clicked
-
-            DatabaseRequest dbr = new DatabaseRequest(this);
-            Spot spot = dbr.createSpot("Spot", "", new LatLng(myLocation.getLatitude(), myLocation.getLongitude()));
-            addSpotOnMap(spot);
-            menuMap.close(true);
+            /**
+             * Lauch the spotCreator activity to get informations about the spot
+             */
+            Intent intent = new Intent(MapsActivity.this, SpotCreatorActivity.class);
+            startActivityForResult(intent, CREATE_SPOT_REQUEST);
         });
     }
 
@@ -271,6 +273,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .radius(radius(spot.getInfluenceLvl()))
                 .strokeColor(circleColor.strokeColor)
                 .fillColor(circleColor.fillColor);
+    }
+
+    /**
+     * Create a spot on the database at the current position and add it on the map
+     */
+    private void createSpot(String name){
+        DatabaseRequest dbr = new DatabaseRequest(this);
+        Spot spot = dbr.createSpot(name, "", new LatLng(myLocation.getLatitude(), myLocation.getLongitude()));
+        addSpotOnMap(spot);
+        menuMap.close(true);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == CREATE_SPOT_REQUEST && resultCode == RESULT_OK){
+            if(data != null){
+                String name = data.getStringExtra(SpotCreatorActivity.KEY_NAME);
+                createSpot(name);
+            }
+        }
     }
 
     /**
