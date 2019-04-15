@@ -39,7 +39,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".spot.view.SpotActivity"
+            android:name=".spot.spot_activity.SpotActivity"
             android:label="@string/app_name"
             android:parentActivityName=".MapsActivity">
             <meta-data

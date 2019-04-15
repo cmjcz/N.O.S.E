@@ -1,13 +1,9 @@
 package fr.eq3.nose.spot.items;
 
-import android.content.Context;
 import android.os.Parcel;
 import android.os.Parcelable;
 
 import java.util.ArrayList;
-import java.util.Collection;
-
-import fr.eq3.nose.spot.view.ProgressiveImageLoader;
 
 public final class SpotImpl implements Spot{
 

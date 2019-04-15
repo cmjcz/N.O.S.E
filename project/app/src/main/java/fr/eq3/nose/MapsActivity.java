@@ -32,7 +32,7 @@ import java.util.Set;
 
 import fr.eq3.nose.spot.items.DatabaseRequest;
 import fr.eq3.nose.spot.items.Spot;
-import fr.eq3.nose.spot.view.SpotActivity;
+import fr.eq3.nose.spot.spot_activity.SpotActivity;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, LocationListener {
 
