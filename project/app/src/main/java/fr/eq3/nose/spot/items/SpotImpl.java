@@ -108,7 +108,7 @@ public final class SpotImpl implements Spot{
         this.id = in.readLong();
         this.items = in.readArrayList(ImageItem.class.getClassLoader());
         this.lattitude = in.readDouble();
-        this.longitude = in.readLong();
+        this.longitude = in.readDouble();
         this.influenceLvl = in.readInt();
     }
 }

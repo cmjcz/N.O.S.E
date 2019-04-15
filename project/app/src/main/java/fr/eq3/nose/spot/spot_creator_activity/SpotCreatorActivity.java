@@ -8,11 +8,16 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.EditText;
 
+import com.google.android.gms.maps.model.LatLng;
+
 import fr.eq3.nose.R;
+import fr.eq3.nose.spot.items.DatabaseRequest;
+import fr.eq3.nose.spot.items.Spot;
 
 public class SpotCreatorActivity extends AppCompatActivity {
-    public static final String KEY_NAME = "name";
-    public static final String KEY_DESC = "desc";
+    public static final String KEY_SPOT = "spot";
+    public static final String KEY_POS = "pos";
+    private LatLng mylocation;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -20,14 +25,18 @@ public class SpotCreatorActivity extends AppCompatActivity {
         setContentView(R.layout.descriptible_creator_view);
         FloatingActionButton validate = findViewById(R.id.validateButton);
         validate.setOnClickListener(this::onClick);
+        mylocation = getIntent().getParcelableExtra(KEY_POS);
     }
 
     private void validate() {
-        Intent intent = new Intent();
         EditText name = findViewById(R.id.nameTextField);
-        intent.putExtra(KEY_NAME, name.getText().toString());
         EditText desc = findViewById(R.id.descTextField);
-        intent.putExtra(KEY_DESC, desc.getText().toString());
+        DatabaseRequest dbr = new DatabaseRequest(this);
+        Spot spot = dbr.createSpot(name.getText().toString(),
+                desc.getText().toString(),
+                mylocation);
+        Intent intent = new Intent();
+        intent.putExtra(KEY_SPOT, spot);
         this.setResult(RESULT_OK, intent);
         finish();
     }

@@ -101,6 +101,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
              * Lauch the spotCreator activity to get informations about the spot
              */
             Intent intent = new Intent(MapsActivity.this, SpotCreatorActivity.class);
+            intent.putExtra(SpotCreatorActivity.KEY_POS, new LatLng(myLocation.getLatitude(), myLocation.getLongitude()));
             startActivityForResult(intent, CREATE_SPOT_REQUEST);
         });
     }
@@ -255,15 +256,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      * Put a spot on the map, at the current location
      */
     public void addSpotOnMap(Spot spot){
+        spot_cache.add(spot);
         mMap.addMarker(getSpotMarker(spot));
         mMap.addCircle(getSpotInfluenceZone(spot));
-        spot_cache.add(spot);
     }
 
     private MarkerOptions getSpotMarker(Spot spot){
-        return new MarkerOptions()
+        MarkerOptions markerOptions = new MarkerOptions()
                 .position(new LatLng(spot.getLat(), spot.getLong()))
                 .title(spot.getId() + "");
+        return  markerOptions;
     }
 
     private CircleOptions getSpotInfluenceZone(Spot spot){
@@ -275,24 +277,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .fillColor(circleColor.fillColor);
     }
 
-    /**
-     * Create a spot on the database at the current position and add it on the map
-     */
-    private void createSpot(String name, String desc){
-        DatabaseRequest dbr = new DatabaseRequest(this);
-        Spot spot = dbr.createSpot(name, desc, new LatLng(myLocation.getLatitude(), myLocation.getLongitude()));
-        addSpotOnMap(spot);
-    }
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if(requestCode == CREATE_SPOT_REQUEST){
             if(resultCode == RESULT_OK){
                 if(data != null){
-                    String name = data.getStringExtra(SpotCreatorActivity.KEY_NAME);
-                    String desc = data.getStringExtra(SpotCreatorActivity.KEY_DESC);
-                    createSpot(name, desc);
+                    Spot spot = data.getParcelableExtra(SpotCreatorActivity.KEY_SPOT);
+                    spot_cache.add(spot);
+                    addSpotOnMap(spot);
                 }
             }
             menuMap.close(true);
