@@ -7,18 +7,25 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import fr.eq3.nose.spot.items.exceptions.ImageNotFoundException;
+
 public class DatabaseRequest extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "spots_db";
-    private static final int DATABASE_VERSION = 18;
+    private static final int DATABASE_VERSION = 76;
 
     private static final String TABLE_SPOTS = "spots";
     private static final String KEY_ID_SPOT = "id_spot";
@@ -42,11 +49,11 @@ public class DatabaseRequest extends SQLiteOpenHelper {
             ");";
 
     private static final String TABLE_IMAGES = "images";
-    private static final String KEY_IMAGE_DATA = "data";
     private static final String CREATE_TABLE_IMAGES = "CREATE TABLE " + TABLE_IMAGES + "(" +
-            KEY_ID_ITEM + " INTEGER PRIMARY KEY, " + KEY_IMAGE_DATA + " BLOB, "+  " FOREIGN KEY("
+            KEY_ID_ITEM + " INTEGER PRIMARY KEY, "+  " FOREIGN KEY("
             + KEY_ID_ITEM + ") REFERENCES " + TABLE_ITEMS +
             ");";
+    private static final String IMAGE_EXT = ".bimg";
 
     private Context context;
 
@@ -71,13 +78,38 @@ public class DatabaseRequest extends SQLiteOpenHelper {
         double longitude = c.getDouble(c.getColumnIndex(KEY_LONG));
         int lvl = c.getInt(c.getColumnIndex(KEY_LVL));
         c.close();
-        ProgressiveImageLoader progressiveLoader = new ProgressiveImageLoader(
-                id, context);
-        return new SpotImpl(id, name, lat, longitude, lvl, progressiveLoader);
+        db.close();
+        return new SpotImpl(id, name, lat, longitude, lvl);
 
     }
 
-    List<Integer> getItemsIdsOfSpot(long spotId) {
+    public List<Integer> getSpotsBetween(double latitude, double longitude, double radius){
+        double latMin = latitude - radius;
+        double latMax = latitude + radius;
+        double longMin = longitude - radius;
+        double longMax = longitude + radius;
+        ArrayList<Integer> ids = new ArrayList<>();
+        SQLiteDatabase db = getReadableDatabase();
+        String selectQuery = "SELECT " + KEY_ID_SPOT +" FROM " + TABLE_SPOTS
+                + " WHERE " + KEY_LAT +  ">=" + latMin + " AND " + KEY_LAT + " <= " + latMax
+                + " AND " + KEY_LONG +  ">=" + longMin + " AND " + KEY_LONG + " <= " + longMax;
+
+        Cursor c = db.rawQuery(selectQuery, null);
+        if(c == null ){
+            return ids;
+        }
+        if(c.moveToFirst()){
+            do{
+                int id = c.getInt(c.getColumnIndex(KEY_ID_SPOT));
+                ids.add(id);
+            }while (c.moveToNext());
+        }
+        c.close();
+        db.close();
+        return ids;
+    }
+
+    public List<Integer> getItemsIdsOfSpot(long spotId) {
 
         SQLiteDatabase db = getReadableDatabase();
         String selectQuery = "SELECT " + KEY_ID_ITEM + " FROM " + TABLE_ITEMS +
@@ -95,28 +127,46 @@ public class DatabaseRequest extends SQLiteOpenHelper {
             }while(c.moveToNext());
         }
         c.close();
+        db.close();
         return ids;
     }
 
-    ImageItem getImage(int id) {
+    public ImageItem getImage(int id) throws ImageNotFoundException {
 
         if(id == -1){
-            return ImageItem.createEmptyImageItem(1, 1, "null");
-        }
+            return new ImageItem("null");
+        }else{
+            try {
+                SQLiteDatabase db = getReadableDatabase();
+                String selectQuery = "SELECT " + KEY_NAME + ", " + KEY_COMMENTARY + " FROM " + TABLE_ITEMS +
+                        " WHERE " + TABLE_ITEMS + "."+  KEY_ID_ITEM + " = " + id;
+                Cursor c = db.rawQuery(selectQuery, null);
+                if(c == null ){
+                    throw new ImageNotFoundException("Image not found on database");
+                }
+                if(c.moveToFirst()){
+                    String name = c.getString(c.getColumnIndex(KEY_NAME));
+                    String desc = c.getString(c.getColumnIndex(KEY_COMMENTARY));
+                    return getImageFromFile(id, name, desc);
+                }
+                throw new ImageNotFoundException("Image not found on database");
+            } catch (IOException e) {
+                throw new ImageNotFoundException("Image not found on system storage");
+            }
 
-        SQLiteDatabase db = getReadableDatabase();
-        String selectQuery = "SELECT " + KEY_IMAGE_DATA + " FROM " + TABLE_IMAGES
-                + " WHERE " + KEY_ID_ITEM + " = " + id;
-
-        Cursor c = db.rawQuery(selectQuery, null);
-        if(c == null ){
-            return null;
         }
-        c.moveToFirst();
-        byte[] imageBytes = c.getBlob(c.getColumnIndex(KEY_IMAGE_DATA));
-        Bitmap bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
-        c.close();
-        return new ImageItem(bitmap, "Image #"+id);
+    }
+
+    private ImageItem getImageFromFile(int id, String name, String desc) throws IOException {
+        File path = this.context.getFilesDir();
+        File img = new File(path, id + IMAGE_EXT);
+        FileInputStream in;
+        in = new FileInputStream(img);
+        byte[] bytes = new byte[(int) img.length()];
+        in.read(bytes);
+        in.close();
+        Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+        return new ImageItem(bitmap, name);
     }
 
     public Spot createSpot(String name, String description, LatLng position){
@@ -133,8 +183,7 @@ public class DatabaseRequest extends SQLiteOpenHelper {
         values.put(KEY_LVL, START_LVL);
 
         long id = db.insert(TABLE_SPOTS, null, values);
-        return new SpotImpl(id, name, position.latitude, position.longitude, START_LVL,
-                new ProgressiveImageLoader(id, this.context));
+        return new SpotImpl(id, name, position.latitude, position.longitude, START_LVL);
     }
 
     private String getdate() {
@@ -142,20 +191,34 @@ public class DatabaseRequest extends SQLiteOpenHelper {
         return sdf.format(new Date());
     }
 
-    long putImage(ImageItem imageItem, long spotId) {
+    public long putImage(ImageItem imageItem, long spotId) {
         SQLiteDatabase db = getWritableDatabase();
         return putImage(db, imageItem, spotId);
     }
 
     private long putImage(SQLiteDatabase db, ImageItem imageItem, long spotId){
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
-        imageItem.getImage().compress(Bitmap.CompressFormat.PNG, 0, os);
-        byte[] imageBytes = os.toByteArray();
-        long itemId = putItem(db, imageItem.getTitle(), "", spotId);
+        long itemId = putItem(db, imageItem.getName(), "", spotId);
         ContentValues image_values = new ContentValues();
-        image_values.put(KEY_IMAGE_DATA, imageBytes);
+        putImageInFile(imageItem, itemId);
         image_values.put(KEY_ID_ITEM, itemId);
-        return db.insert(TABLE_IMAGES, null, image_values);
+        db.insert(TABLE_IMAGES, null, image_values);
+        db.close();
+        return itemId;
+    }
+
+    private void putImageInFile(ImageItem imageItem, long itemId){
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        imageItem.getData().compress(Bitmap.CompressFormat.PNG, 0, os);
+        byte[] imageBytes = os.toByteArray();
+        File path = this.context.getFilesDir();
+        File img = new File(path, itemId + IMAGE_EXT);
+        try {
+            FileOutputStream stream = new FileOutputStream(img);
+            stream.write(imageBytes);
+            stream.close();
+        } catch (IOException e) {
+            Log.i("DIM", "Error when saving the file");
+        }
     }
 
     private long putItem(SQLiteDatabase db, String name, String commentary, long spotId){
@@ -164,7 +227,8 @@ public class DatabaseRequest extends SQLiteOpenHelper {
         items_values.put(KEY_COMMENTARY, commentary);
         items_values.put(KEY_DATE, getdate());
         items_values.put(KEY_ID_SPOT, spotId);
-        return db.insert(TABLE_ITEMS, null, items_values);
+        long id = db.insert(TABLE_ITEMS, null, items_values);
+        return id;
     }
 
     @Override

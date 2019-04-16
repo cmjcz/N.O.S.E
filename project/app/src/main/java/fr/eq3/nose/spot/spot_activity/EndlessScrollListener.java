@@ -1,4 +1,4 @@
-package fr.eq3.nose.spot.view;
+package fr.eq3.nose.spot.spot_activity;
 
 import android.widget.AbsListView;
 

@@ -1,26 +1,26 @@
 package fr.eq3.nose.spot.items;
 
-import android.content.Context;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 import java.util.ArrayList;
-import java.util.Collection;
 
 public final class SpotImpl implements Spot{
 
-    private final String name;
+    private String name;
+    private String description;
     private final long id;
     private final ArrayList<ImageItem> items;
-    private final ProgressiveImageLoader progressiveLoader;
     private final double lattitude, longitude;
     private final int influenceLvl;
 
-    SpotImpl(long id, String name, double lat, double longitude, int influenceLvl, ProgressiveImageLoader progressiveLoader) {
+    SpotImpl(long id, String name, double lat, double longitude, int influenceLvl) {
         this.id = id;
         this.name = name;
+        this.description = "";
         this.items = new ArrayList<>();
         this.lattitude = lat;
         this.longitude = longitude;
-        this.progressiveLoader = progressiveLoader;
         this.influenceLvl = influenceLvl;
     }
 
@@ -30,24 +30,28 @@ public final class SpotImpl implements Spot{
     }
 
     @Override
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String getDesription() {
+        return description;
+    }
+
+    @Override
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    @Override
     public ArrayList<ImageItem> getItems() {
         return items;
     }
 
     @Override
-    public void addItem(Context context, ImageItem imageItem) {
+    public void addItem(ImageItem imageItem) {
         this.items.add(imageItem);
-        new DatabaseRequest(context).putImage(imageItem, this.id);
-    }
-
-    @Override
-    public boolean loadMore(int totalItems, boolean isNeededToWait) {
-        Collection<ImageItem> elements = progressiveLoader.getNextElements(totalItems, isNeededToWait);
-        if(elements != null){
-            this.items.addAll(elements);
-            return true;
-        }
-        return false;
     }
 
     @Override
@@ -68,5 +72,43 @@ public final class SpotImpl implements Spot{
     @Override
     public int getInfluenceLvl() {
         return this.influenceLvl;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.name);
+        dest.writeString(this.description);
+        dest.writeLong(this.id);
+        dest.writeList(this.items);
+        dest.writeDouble(this.lattitude);
+        dest.writeDouble(this.longitude);
+        dest.writeInt(this.influenceLvl);
+
+    }
+
+    public static final Parcelable.Creator<SpotImpl> CREATOR
+            = new Parcelable.Creator<SpotImpl>() {
+        public SpotImpl createFromParcel(Parcel in) {
+            return new SpotImpl(in);
+        }
+
+        public SpotImpl[] newArray(int size) {
+            return new SpotImpl[size];
+        }
+    };
+
+    private SpotImpl(Parcel in) {
+        this.name = in.readString();
+        this.description = in.readString();
+        this.id = in.readLong();
+        this.items = in.readArrayList(ImageItem.class.getClassLoader());
+        this.lattitude = in.readDouble();
+        this.longitude = in.readDouble();
+        this.influenceLvl = in.readInt();
     }
 }

@@ -1,4 +1,4 @@
-package fr.eq3.nose.spot.view;
+package fr.eq3.nose.spot.spot_activity;
 
 import android.app.Activity;
 import android.content.Context;
@@ -42,9 +42,9 @@ class GridViewAdapter extends ArrayAdapter {
         }
 
         ImageItem item = data.get(position);
-        String title = item.getTitle();
+        String title = item.getName();
         holder.imageTitle.setText(title);
-        holder.image.setImageBitmap(item.getImage());
+        holder.image.setImageBitmap(item.getData());
         return row;
     }
 

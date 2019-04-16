@@ -9,12 +9,11 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
-import android.util.Log;
-import android.view.View;
 import android.widget.Toast;
 
 import com.github.clans.fab.FloatingActionButton;
@@ -28,23 +27,26 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import fr.eq3.nose.spot.items.DatabaseRequest;
 import fr.eq3.nose.spot.items.Spot;
-import fr.eq3.nose.spot.view.SpotView;
+import fr.eq3.nose.spot.spot_activity.SpotActivity;
+import fr.eq3.nose.spot.spot_creator_activity.SpotCreatorActivity;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, LocationListener {
 
     private static final int MY_LOCATION_REQUEST_CODE = 101;
+    private static final int CREATE_SPOT_REQUEST = 64;
 
     private GoogleMap mMap;
     private LocationManager locationManager;
     private Location myLocation;
     private static final long MIN_TIME = 0;
     private static final float MIN_DISTANCE = 0;
-    private ArrayList<Spot> spotList_tmp = new ArrayList<>();
-    private ArrayList<CircleOptions> influenceZone_tmp = new ArrayList<>();
+    private Set<Spot> spot_cache = new HashSet<>();
     //Requete de localisation
     private Intent intentThatCalled;
     private Criteria criteria;
@@ -91,8 +93,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         });
         option_addSpot.setOnClickListener(v -> {
-            addSpotOnMap();
-            menuMap.close(true);
+            /**
+             * Lauch the spotCreator activity to get informations about the spot
+             */
+            Intent intent = new Intent(MapsActivity.this, SpotCreatorActivity.class);
+            intent.putExtra(SpotCreatorActivity.KEY_POS, new LatLng(myLocation.getLatitude(), myLocation.getLongitude()));
+            startActivityForResult(intent, CREATE_SPOT_REQUEST);
         });
     }
 
@@ -109,6 +115,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
  //       enableMyLocation();
         getLocation();
         LatLng currentPosition = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
+        refreshSpotsCache();
         //Map type
         mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
         //Min Zoom
@@ -121,9 +128,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentPosition, 17.0f));
 
         mMap.setOnMarkerClickListener(marker -> {
-            Intent intent = new Intent(MapsActivity.this, SpotView.class);
+            Intent intent = new Intent(MapsActivity.this, SpotActivity.class);
             final long id = Long.parseLong(marker.getTitle());
-            intent.putExtra(SpotView.SPOT_EXTRA, id);
+            intent.putExtra(SpotActivity.SPOT_EXTRA, id);
             startActivity(intent);
             return true;
         });
@@ -135,15 +142,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      */
     @Override
     public void onLocationChanged(Location location) {
-        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-        mMap.clear();
         myLocation=location;
-        mMap.addCircle(new CircleOptions()
-                .center(latLng)
-                .radius(20)
-                .strokeColor(Color.BLUE)
-                .fillColor(0x700787ef));
-        refreshMap();
+        refreshSpotsCache();
     }
 
     @Override
@@ -152,9 +152,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         if(mMap != null){
             mMap.clear();
-
-            // add markers from database to the map
         }
+        refreshMap();
     }
 
     @Override
@@ -231,46 +230,38 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      * Re-put all the spots and influence areas on the Map
      */
     public void refreshMap(){
-        for(Spot saved : spotList_tmp){
+        for(Spot saved : spot_cache){
             mMap.addMarker(getSpotMarker(saved));
             mMap.addCircle(getSpotInfluenceZone(saved));
         }
     }
 
-    /**
-     * Put a spot on the map, at the current location
-     */
-    public void addSpotOnMap(){
+    private void refreshSpotsCache(){
         DatabaseRequest dbr = new DatabaseRequest(this);
-        Spot spot = dbr.createSpot("Spot", "", new LatLng(myLocation.getLatitude(), myLocation.getLongitude()));
-        mMap.addMarker(getSpotMarker(spot));
-        mMap.addCircle(getSpotInfluenceZone(spot));
-        spotList_tmp.add(spot);
-        influenceZone_tmp.add(getSpotInfluenceZone(spot));
+        List<Integer> spots = dbr.getSpotsBetween(myLocation.getLatitude(), myLocation.getLongitude(), 100);
+        for(int id : spots) {
+            Spot s = dbr.getSpot(id);
+            if(!spot_cache.contains(s)){
+                spot_cache.add(s);
+                addSpotOnMap(s);
+            }
+        }
     }
 
-//    public boolean zonesInConflict(Spot centerZone1, Spot centerZone2){
-//        double lat, lng;
-//        if(centerZone1.getSpotLocation().getLatitude()>centerZone2.getSpotLocation().getLatitude()){
-//            lat=centerZone1.getSpotLocation().getLatitude()-centerZone2.getSpotLocation().getLatitude();
-//        }else{
-//            lat=centerZone2.getSpotLocation().getLatitude()-centerZone1.getSpotLocation().getLatitude();
-//        }
-//        if(centerZone1.getSpotLocation().getLongitude()>centerZone2.getSpotLocation().getLongitude()){
-//            lng=centerZone1.getSpotLocation().getLongitude()-centerZone2.getSpotLocation().getLongitude();
-//        }else{
-//            lng=centerZone1.getSpotLocation().getLongitude()-centerZone2.getSpotLocation().getLongitude();
-//        }
-//        if(lat <= centerZone2.getSpotInfluenceZone().getRadius() || lng <= centerZone2.getSpotInfluenceZone().getRadius()){
-//            return true;
-//        }
-//        return false;
-//    }
+    /**I/art: Rejecting re-init on previously-failed class java.lang.Class<fr.eq3.nose.-$$Lambda$MapsActivity$GXJAi3W9Z41rCnmXELYVVzl0h_4>
+     * Put a spot on the map, at the current location
+     */
+    public void addSpotOnMap(Spot spot){
+        spot_cache.add(spot);
+        mMap.addMarker(getSpotMarker(spot));
+        mMap.addCircle(getSpotInfluenceZone(spot));
+    }
 
     private MarkerOptions getSpotMarker(Spot spot){
-        return new MarkerOptions()
+        MarkerOptions markerOptions = new MarkerOptions()
                 .position(new LatLng(spot.getLat(), spot.getLong()))
                 .title(spot.getId() + "");
+        return  markerOptions;
     }
 
     private CircleOptions getSpotInfluenceZone(Spot spot){
@@ -280,6 +271,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .radius(radius(spot.getInfluenceLvl()))
                 .strokeColor(circleColor.strokeColor)
                 .fillColor(circleColor.fillColor);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == CREATE_SPOT_REQUEST){
+            if(resultCode == RESULT_OK){
+                if(data != null){
+                    long spotid = data.getLongExtra(SpotActivity.SPOT_EXTRA, -1);
+                    Spot spot = new DatabaseRequest(this).getSpot(spotid);
+                    spot_cache.add(spot);
+                    addSpotOnMap(spot);
+                }
+            }
+            menuMap.close(true);
+        }
     }
 
     /**
