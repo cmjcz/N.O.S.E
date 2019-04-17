@@ -65,24 +65,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
-        boolean gps_enabled = false;
-        boolean network_enabled = false;
-
-        try {
-            gps_enabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-        } catch(Exception ex) {}
-
-        try {
-            network_enabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-        } catch(Exception ex) {}
-        if (gps_enabled){
-            Log.i("flo_out","OUI");
-        }else{
-            Log.i("flo_out","NON");
-
+        criteria = new Criteria();
+        bestProvider = String.valueOf(locationManager.getBestProvider(criteria, true));
+        if(!isGpsActivated()){
+            myLocation = new Location(bestProvider);
+            myLocation.setLongitude(0);
+            myLocation.setLatitude(0);
         }
-
         intentThatCalled = getIntent();
         voice2text = intentThatCalled.getStringExtra("v2txt");
 
@@ -90,6 +79,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         MapFragment map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map));
         map.getMapAsync(this);
         initializeMenu();
+
     }
 
     private void initializeMenu(){
@@ -131,9 +121,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      */
     @Override
     public void onMapReady(GoogleMap googleMap) {
+        Log.i("flo_out", "ETAPE 0");
         mMap = googleMap;
         //Enable to track the location
+        Log.i("flo_out", "ETAPE 1");
+        if(!isGpsActivated()){
+            alertGpsDisabled();
+        }
         getLocation();
+        Log.i("flo_out", "ETAPE 2");
         LatLng currentPosition = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
         refreshSpotsCache();
         //Map type
@@ -209,10 +205,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      * @return true/false
      */
     public boolean isGpsActivated(){
-        LocationManager manager = (LocationManager) getSystemService( Context.LOCATION_SERVICE );
-
-        Log.i("flo_out", "ETAT : "+manager.isProviderEnabled( LocationManager.GPS_PROVIDER ));
-        return manager.isProviderEnabled( LocationManager.GPS_PROVIDER );
+        if(bestProvider==null){
+            return false;
+        }
+        Log.i("flo_out", "ETAT : "+locationManager.isProviderEnabled(bestProvider));
+        return locationManager.isProviderEnabled(bestProvider);
     }
 
     public void alertGpsDisabled(){
@@ -244,32 +241,35 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      * Find the current location of the user or ask for permissions
      */
     protected void getLocation() {
-        if(isGpsActivated()) {
             if (isLocationEnabled(MapsActivity.this)) {
                 mMap.setMyLocationEnabled(true);
                 locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-                criteria = new Criteria();
-                bestProvider = String.valueOf(locationManager.getBestProvider(criteria, true));
+//                criteria = new Criteria();
+//                bestProvider = String.valueOf(locationManager.getBestProvider(criteria, true));
                 myLocation = locationManager.getLastKnownLocation(bestProvider);
                 if (myLocation != null) {
                     Toast.makeText(MapsActivity.this, "LOCALISATION : OK", Toast.LENGTH_SHORT).show();
+                    Log.i("flo_out", "LOCALISATION : OK");
+
                 } else {
                     locationManager.requestLocationUpdates(bestProvider, MIN_TIME, MIN_DISTANCE, this);
                     myLocation = locationManager.getLastKnownLocation(bestProvider);
+                    Log.i("flo_out", "LOCALISATION : NULL");
                     if (myLocation == null) {
+                        Log.i("flo_out", "LOCALISATION : NULL + boucle");
                         getLocation();
                     }
                 }
             } else {
                 //Demande d'activation du service de localisation
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_LOCATION_REQUEST_CODE);
-
+                getLocation();
             }
-        }else{
+ /*       }else{
             alertGpsDisabled();
             Log.i("flo_out", "GPS DESACTIVÉ");
         }
-    }
+  */  }
 
 
 
