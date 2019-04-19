@@ -183,7 +183,7 @@ public class DatabaseRequest extends SQLiteOpenHelper {
         values.put(KEY_LVL, START_LVL);
 
         long id = db.insert(TABLE_SPOTS, null, values);
-        return new SpotImpl(id, name, position.latitude, position.longitude, START_LVL);
+        return new SpotImpl(id, name, description, position.latitude, position.longitude, START_LVL);
     }
 
     private String getdate() {
