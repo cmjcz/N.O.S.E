@@ -76,6 +76,11 @@ public class ImageItem implements Element<Bitmap>{
     }
 
     @Override
+    public void setId(long id){
+        this.id = id;
+    }
+
+    @Override
     public int describeContents() {
         return 0;
     }

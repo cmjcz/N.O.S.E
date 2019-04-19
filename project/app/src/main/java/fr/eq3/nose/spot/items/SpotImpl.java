@@ -9,7 +9,7 @@ public final class SpotImpl implements Spot{
 
     private String name;
     private String description;
-    private final long id;
+    private long id;
     private final ArrayList<ImageItem> items;
     private final double lattitude, longitude;
     private final int influenceLvl;
@@ -58,6 +58,9 @@ public final class SpotImpl implements Spot{
     public long getId() {
         return this.id;
     }
+
+    @Override
+    public void setId(long id) { this.id = id; }
 
     @Override
     public double getLat() {

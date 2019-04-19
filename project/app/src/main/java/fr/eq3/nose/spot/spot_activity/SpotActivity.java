@@ -67,7 +67,7 @@ public final class SpotActivity extends AppCompatActivity {
                 long image = spot.getItems().get(position).getId();
 
                 Intent intent = new Intent(SpotActivity.this, ImageActivity.class);
-                intent.putExtra("image", image);
+                intent.putExtra(ImageActivity.IMAGE_EXTRA, image);
                 startActivity(intent);
             }
         });

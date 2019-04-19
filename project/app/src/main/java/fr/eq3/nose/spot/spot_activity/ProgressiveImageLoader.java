@@ -59,6 +59,7 @@ public final class ProgressiveImageLoader {
                 ImageItem img = null;
                 try {
                     img = new DatabaseRequest(ProgressiveImageLoader.this.context).getImage(ressourcesId);
+                    imageItem.setId(img.getId());
                     imageItem.setData(img.getData());
                     imageItem.setName(img.getName());
                 } catch (ImageNotFoundException e) {
