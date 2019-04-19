@@ -9,4 +9,7 @@
     <string name="image_new">Nouvelle publication</string>
     <string name="description">Description</string>
     <string name="name">Nom</string>
+
+    <string name="desc_creator_view_nom">Nom</string>
+    <string name="desc_creator_view_desc">Description</string>
 </resources>
