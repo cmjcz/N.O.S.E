@@ -4,7 +4,9 @@
     <string name="AddSpot">Placer un Spot</string>
     <string name="action_settings">Settings</string>
     <string name="default_text">default</string>
-    <string name="spot_s_name">Spot\'s name :</string>
+    <string name="spot_s_name">Nom du spot</string>
+    <string name="spot_s_new">Nouveau spot</string>
+    <string name="image_new">Nouvelle publication</string>
     <string name="description">Description</string>
-    <string name="name">Name</string>
+    <string name="name">Nom</string>
 </resources>
