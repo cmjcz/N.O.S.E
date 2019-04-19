@@ -15,33 +15,6 @@
         android:layout_height="match_parent"
         tools:context=".MapsActivity" />
 
-<!--    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/AddSpot"
-            android:onClick="addSpotOnMap"/>
-
-        <Switch
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/mapType"
-            android:onClick="setMapType"/>
-    </LinearLayout>  -->
-
-<!--    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="end|bottom"
-        android:src="@drawable/sharp_add_white_18dp"
-        android:backgroundTint="@color/colorMenu"
-        android:layout_margin="16dp" />  -->
-
     <com.github.clans.fab.FloatingActionMenu
         android:id="@+id/menuMap"
         android:layout_width="wrap_content"

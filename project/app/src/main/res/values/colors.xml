@@ -1,9 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#008577</color>
-    <color name="colorPrimaryDark">#00574B</color>
-    <color name="colorAccent">#D81B60</color>
-    <color name="colorMenu">#0259e5</color>
-    <color name="colorSubMenu">#4286f4</color>
-    <color name="addButton">#FF00D0</color>
+    <color name="colorPrimary">#D98C5F</color>
+    <color name="colorPrimaryDark">#59190B</color>
+    <color name="colorAccent">#F2E2C4</color>
+
+    <color name="background">#F2E2C4</color>
+
+    <!-- Menu -->
+    <color name="colorMenu">#D98C5F</color>
+    <color name="colorSubMenu">#F2B56B</color>
+    <color name="addButton">#D98C5F</color>
+
+    <!-- Text -->
+    <color name="classicTextColor">#D98C5F</color>
+    <color name="titleTextColor">#59190B</color>
+
 </resources>

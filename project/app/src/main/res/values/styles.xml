@@ -8,10 +8,37 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <style name="MyTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        
-        
-        
+    <style name="ClassicTextStyle">
+        <item name="android:textColor">@color/classicTextColor</item>
+        <item name="android:layout_marginTop">10dp</item>
+        <item name="android:textSize">12dp</item>
     </style>
-    
+
+    <style name="TitleTextStyle">
+        <item name="android:textColor">@color/titleTextColor</item>
+        <item name="android:gravity">center</item>
+        <item name="android:layout_marginTop">10dp</item>
+        <item name="android:textSize">20dp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="LinearLayoutMargin">
+        <item name="android:layout_marginTop">5dp</item>
+        <item name="android:layout_marginLeft">5dp</item>
+        <item name="android:layout_marginRight">5dp</item>
+        <item name="android:layout_marginBottom">5dp</item>
+    </style>
+
+    <style name="Name_Desc_Text">
+        <item name="android:textColor">@color/classicTextColor</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">15dp</item>
+    </style>
+
+    <style name="Background">
+        <item name="android:background">@color/background</item>
+    </style>
+
+
+
 </resources>
