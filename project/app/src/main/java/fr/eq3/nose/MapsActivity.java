@@ -1,7 +1,9 @@
 package fr.eq3.nose;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -11,9 +13,13 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.github.clans.fab.FloatingActionButton;
@@ -47,6 +53,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static final long MIN_TIME = 0;
     private static final float MIN_DISTANCE = 0;
     private Set<Spot> spot_cache = new HashSet<>();
+    private TextView error;
     //Requete de localisation
     private Intent intentThatCalled;
     private Criteria criteria;
@@ -60,8 +67,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+        error = findViewById(R.id.error);
+        error.setVisibility(View.INVISIBLE);
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
+        criteria = new Criteria();
+        bestProvider = String.valueOf(locationManager.getBestProvider(criteria, true));
         intentThatCalled = getIntent();
         voice2text = intentThatCalled.getStringExtra("v2txt");
 
@@ -69,6 +79,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         MapFragment map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map));
         map.getMapAsync(this);
         initializeMenu();
+
     }
 
     private void initializeMenu(){
@@ -85,12 +96,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         option_mapNormal.setOnClickListener(v -> {
             mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
             menuMap.close(true);
-
         });
         option_mapSatelite.setOnClickListener(v -> {
             mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
             menuMap.close(true);
-
         });
         option_addSpot.setOnClickListener(v -> {
             /**
@@ -102,22 +111,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 
-    /**
-     * Map management
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
-     */
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
-        //Enable to track the location
- //       enableMyLocation();
-        getLocation();
+    private void updateMaps(){
         LatLng currentPosition = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
+        Log.i("flo_out", "LATITUDE : "+myLocation.getLatitude()+" LONGITUDE : "+myLocation.getLongitude());
         refreshSpotsCache();
         //Map type
-        mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         //Min Zoom
         mMap.setMinZoomPreference(14.0f);
         //Disable rotation and scrolling
@@ -126,7 +125,48 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.getUiSettings().setRotateGesturesEnabled(false);
         //Move the camera to the current location
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentPosition, 17.0f));
+    }
 
+    /**
+     * Map management
+     * If Google Play services is not installed on the device, the user will be prompted to install
+     * it inside the SupportMapFragment. This method will only be triggered once the user has
+     * installed Google Play services and returned to the app.
+     */
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        Log.i("flo_out", "ETAPE 0");
+        mMap = googleMap;
+        //Enable to track the location
+        Log.i("flo_out", "ETAPE 1");
+        if(isGpsActivated()){
+            Log.i("flo_out", "RECHERCHE");
+            getLocation();
+        }else{
+            if(!isLocationEnabled(MapsActivity.this)){
+                enableLocation();
+            }
+            Location temporary = new Location("");
+            temporary.setLatitude(0);
+            temporary.setLongitude(0);
+            myLocation = temporary;
+            Log.i("flo_out", "TEMPORAIRE");
+        }
+        Log.i("flo_out", "ETAPE 2");
+//        LatLng currentPosition = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
+//        Log.i("flo_out", "LATITUDE : "+myLocation.getLatitude()+" LONGITUDE : "+myLocation.getLongitude());
+//        refreshSpotsCache();
+//        //Map type
+//        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+//        //Min Zoom
+//        mMap.setMinZoomPreference(14.0f);
+//        //Disable rotation and scrolling
+//        LatLngBounds myArea = new LatLngBounds(new LatLng(currentPosition.latitude - 0.03, currentPosition.longitude - 0.03), new LatLng(currentPosition.latitude + 0.03, currentPosition.longitude + 0.03));
+//        mMap.setLatLngBoundsForCameraTarget(myArea);
+//        mMap.getUiSettings().setRotateGesturesEnabled(false);
+//        //Move the camera to the current location
+//        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentPosition, 17.0f));
+        updateMaps();
         mMap.setOnMarkerClickListener(marker -> {
             Intent intent = new Intent(MapsActivity.this, SpotActivity.class);
             final long id = Long.parseLong(marker.getTitle());
@@ -134,6 +174,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             startActivity(intent);
             return true;
         });
+        if(!isGpsActivated()){
+            error.setVisibility(View.VISIBLE);
+        }
     }
 
     /**
@@ -160,16 +203,25 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onProviderDisabled(String provider) {
         // TODO Auto-generated method stub
         Toast.makeText(MapsActivity.this,
-                "Provider disable: " + provider, Toast.LENGTH_SHORT)
+                "Signal GPS perdu", Toast.LENGTH_LONG)
                 .show();
+        Log.i("flo_out", "DISABLED : "+provider);
+        error.setVisibility(View.VISIBLE);
     }
 
     @Override
     public void onProviderEnabled(String provider) {
         // TODO Auto-generated method stub
         Toast.makeText(MapsActivity.this,
-                "Provider enabled: " + provider, Toast.LENGTH_SHORT)
+                "GPS trouvé", Toast.LENGTH_LONG)
                 .show();
+        Log.i("flo_out", "ENABLED : "+provider);
+        error.setVisibility(View.INVISIBLE);
+        if(!isLocationEnabled(MapsActivity.this)){
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_LOCATION_REQUEST_CODE);
+        }
+        getLocation();
+        updateMaps();
     }
 
     @Override
@@ -185,7 +237,35 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //TODO//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
-     * The stattement is true if ACCESS_FINE_LOCATION has been granted
+     * To know if the GPS has been activated
+     * @return true/false
+     */
+    public boolean isGpsActivated(){
+        if(bestProvider==null || bestProvider.equals(LocationManager.PASSIVE_PROVIDER)){
+            return false;
+        }
+        Log.i("flo_out", "ETAT GPS: "+locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER));
+        Log.i("flo_out", "PROVIDER: "+bestProvider);
+        return locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER) || locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);//GPS_PROVIDER?
+    }
+
+    public void alertGpsDisabled(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(R.string.dialog).setCancelable(false)
+                .setPositiveButton("Activer GPS", (dialog, param2) -> {
+                    startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                    dialog.cancel();
+                })
+                .setNegativeButton("Quitter", (dialog, param2) -> {
+                    dialog.cancel();
+                    finish();
+                });
+        builder.create().show();
+        Log.i("flo_out", "ALERTE");
+    }
+
+    /**
+     * The statement is true if ACCESS_FINE_LOCATION has been granted
      * @param context
      * @return
      */
@@ -194,33 +274,41 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 == PackageManager.PERMISSION_GRANTED);
     }
 
+    private void enableLocation(){
+        locationManager.requestLocationUpdates(bestProvider, MIN_TIME, MIN_DISTANCE, this);
+        myLocation = locationManager.getLastKnownLocation(bestProvider);
+        Log.i("flo_out", "LOCALISATION : NULL");
+        if (myLocation == null) {
+            Log.i("flo_out", "LOCALISATION : NULL + boucle");
+            getLocation();
+        }
+    }
+
     /**
      * Find the current location of the user or ask for permissions
      */
     protected void getLocation() {
-        if (isLocationEnabled(MapsActivity.this)) {
-            mMap.setMyLocationEnabled(true);
-            locationManager = (LocationManager)  this.getSystemService(Context.LOCATION_SERVICE);
-            criteria = new Criteria();
-            bestProvider = String.valueOf(locationManager.getBestProvider(criteria, true));
-            myLocation = locationManager.getLastKnownLocation(bestProvider);
-            if (myLocation != null) {
-                Toast.makeText(MapsActivity.this,"LOCALISATION : OK", Toast.LENGTH_SHORT).show();
-            }
-            else{
-                locationManager.requestLocationUpdates(bestProvider, MIN_TIME, MIN_DISTANCE, this);
-                myLocation=locationManager.getLastKnownLocation(bestProvider);
-                if(myLocation==null){
-                    getLocation();
-                }
-            }
-        }
-        else
-        {
-            //Demande d'activation du service de localisation
-            ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_LOCATION_REQUEST_CODE);
+//        if(!isGpsActivated()){
+//            alertGpsDisabled();
+//        }
+            if (isLocationEnabled(MapsActivity.this)) {
+                mMap.setMyLocationEnabled(true);
+                locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+                criteria = new Criteria();
+                bestProvider = String.valueOf(locationManager.getBestProvider(criteria, true));
+                myLocation = locationManager.getLastKnownLocation(bestProvider);
+                if (myLocation != null) {
+                    Toast.makeText(MapsActivity.this, "LOCALISATION : OK", Toast.LENGTH_SHORT).show();
+                    Log.i("flo_out", "LOCALISATION : OK");
 
-        }
+                } else {
+                    enableLocation();
+                }
+            } else {
+                //Demande d'activation du service de localisation
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_LOCATION_REQUEST_CODE);
+                getLocation();
+            }
     }
 
 
