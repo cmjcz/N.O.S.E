@@ -8,5 +8,6 @@
     <string name="description">Description</string>
     <string name="name">Name</string>
     <string name="dialog">Pour utiliser l\'application, vous devez activer votre GPS</string>
+    <string name="errorGps">Le GPS est introuvable...</string>
 
 </resources>

@@ -6,4 +6,6 @@
     <color name="colorMenu">#0259e5</color>
     <color name="colorSubMenu">#4286f4</color>
     <color name="addButton">#FF00D0</color>
+    <color name="red">#ff0400</color>
+    <color name="white">#ffffff</color>
 </resources>
