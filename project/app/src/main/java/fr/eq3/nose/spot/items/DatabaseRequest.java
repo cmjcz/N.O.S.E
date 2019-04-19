@@ -79,7 +79,7 @@ public class DatabaseRequest extends SQLiteOpenHelper {
         int lvl = c.getInt(c.getColumnIndex(KEY_LVL));
         c.close();
         db.close();
-        return new SpotImpl(id, name, lat, longitude, lvl);
+        return new SpotImpl(id, name, desc, lat, longitude, lvl);
 
     }
 

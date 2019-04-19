@@ -14,10 +14,10 @@ public final class SpotImpl implements Spot{
     private final double lattitude, longitude;
     private final int influenceLvl;
 
-    SpotImpl(long id, String name, double lat, double longitude, int influenceLvl) {
+    SpotImpl(long id, String name, String description double lat, double longitude, int influenceLvl) {
         this.id = id;
         this.name = name;
-        this.description = "";
+        this.description = description;
         this.items = new ArrayList<>();
         this.lattitude = lat;
         this.longitude = longitude;
