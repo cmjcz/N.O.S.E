@@ -77,11 +77,9 @@ public class ImageItemCreatorActivity extends AppCompatActivity {
         @Override
         protected Void doInBackground(Uri... uris) {
             Uri uri = uris[0];
-            ImageItem imageItem;
             try {
                 Bitmap img = getBitmapFromUri(uri);
-                imageItem = new ImageItem(img, name);
-                new DatabaseRequest(ImageItemCreatorActivity.this).putImage(imageItem, spotId);
+                new DatabaseRequest(ImageItemCreatorActivity.this).createImageItem(name, desc, img, spotId);
             } catch (IOException e) {
                 Log.i("DIM", e.getMessage());
             }

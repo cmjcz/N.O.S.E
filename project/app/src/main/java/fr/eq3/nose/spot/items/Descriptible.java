@@ -8,4 +8,5 @@ public interface Descriptible extends Parcelable {
     void setName(String name);
     String getDesription();
     void setDescription(String description);
+    long getId();
 }
