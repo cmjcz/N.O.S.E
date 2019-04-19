@@ -166,7 +166,7 @@ public class DatabaseRequest extends SQLiteOpenHelper {
         in.read(bytes);
         in.close();
         Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-        return new ImageItem(bitmap, name);
+        return new ImageItem(id, bitmap, name, desc);
     }
 
     public Spot createSpot(String name, String description, LatLng position){
@@ -186,29 +186,31 @@ public class DatabaseRequest extends SQLiteOpenHelper {
         return new SpotImpl(id, name, position.latitude, position.longitude, START_LVL);
     }
 
+    public ImageItem createImageItem(String name, String description, Bitmap img, long spotId){
+        SQLiteDatabase db = getWritableDatabase();
+        long imgId = putImage(db, name, description, img, spotId);
+        return new ImageItem(imgId, img, name, description);
+
+    }
+
     private String getdate() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         return sdf.format(new Date());
     }
 
-    public long putImage(ImageItem imageItem, long spotId) {
-        SQLiteDatabase db = getWritableDatabase();
-        return putImage(db, imageItem, spotId);
-    }
-
-    private long putImage(SQLiteDatabase db, ImageItem imageItem, long spotId){
-        long itemId = putItem(db, imageItem.getName(), "", spotId);
+    private long putImage(SQLiteDatabase db, String name, String desc, Bitmap img, long spotId){
+        long itemId = putItem(db, name, desc, spotId);
         ContentValues image_values = new ContentValues();
-        putImageInFile(imageItem, itemId);
+        putImageInFile(img, itemId);
         image_values.put(KEY_ID_ITEM, itemId);
         db.insert(TABLE_IMAGES, null, image_values);
         db.close();
         return itemId;
     }
 
-    private void putImageInFile(ImageItem imageItem, long itemId){
+    private void putImageInFile(Bitmap image, long itemId){
         ByteArrayOutputStream os = new ByteArrayOutputStream();
-        imageItem.getData().compress(Bitmap.CompressFormat.PNG, 0, os);
+        image.compress(Bitmap.CompressFormat.PNG, 0, os);
         byte[] imageBytes = os.toByteArray();
         File path = this.context.getFilesDir();
         File img = new File(path, itemId + IMAGE_EXT);

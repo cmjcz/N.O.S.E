@@ -8,16 +8,19 @@ public class ImageItem implements Element<Bitmap>{
     private Bitmap image;
     private String name;
     private String desc;
+    private long id;
 
-    public ImageItem(Bitmap image, String title) {
+    public ImageItem(long id, Bitmap image, String title, String desc) {
         super();
+        this.id = id;
         this.image = image;
         this.name = title;
-        this.desc = "";
+        this.desc = desc;
     }
 
     public ImageItem(String title){
         super();
+        this.id = -1;
         this.image = createEmptyBitmap(128, 128);
         this.name = title;
         this.desc = "";
@@ -27,6 +30,7 @@ public class ImageItem implements Element<Bitmap>{
         this.name = in.readString();
         this.desc = in.readString();
         this.image = in.readParcelable(Bitmap.class.getClassLoader());
+        this.id = in.readLong();
     }
 
     public Bitmap getData() {
@@ -67,6 +71,11 @@ public class ImageItem implements Element<Bitmap>{
     }
 
     @Override
+    public long getId() {
+        return this.id;
+    }
+
+    @Override
     public int describeContents() {
         return 0;
     }
@@ -76,6 +85,7 @@ public class ImageItem implements Element<Bitmap>{
         dest.writeString(this.name);
         dest.writeString(this.desc);
         dest.writeParcelable(this.image, flags);
+        dest.writeLong(this.id);
     }
 
     public static final Parcelable.Creator<ImageItem> CREATOR
