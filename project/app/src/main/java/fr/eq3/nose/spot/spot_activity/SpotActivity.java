@@ -51,10 +51,8 @@ public final class SpotActivity extends AppCompatActivity {
                 gridViewAdapter.notifyDataSetChanged();
             }
         });
-        TextView tv = findViewById(R.id.spot_view_name);
-        tv.setText(spot.getName());
         initializeGridView();
-
+        setTitle(spot.getName());
     }
 
     private void initializeGridView(){
