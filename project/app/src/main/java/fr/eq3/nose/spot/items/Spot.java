@@ -8,7 +8,6 @@ public interface Spot extends Descriptible{
     String getName();
     ArrayList<ImageItem> getItems();
     void addItem(ImageItem imageItem);
-    long getId();
     double getLat();
     double getLong();
     int getInfluenceLvl();
