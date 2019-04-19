@@ -1,27 +1,21 @@
 package fr.eq3.nose.spot.spot_activity;
 
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.ParcelFileDescriptor;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.TextView;
-import java.io.FileDescriptor;
-import java.io.IOException;
+
 import java.util.Collection;
-import java.util.concurrent.Future;
 
 import fr.eq3.nose.R;
-import fr.eq3.nose.spot.items.ImageItem;
+import fr.eq3.nose.spot.image_activity.ImageActivity;
 import fr.eq3.nose.spot.items.DatabaseRequest;
+import fr.eq3.nose.spot.items.ImageItem;
 import fr.eq3.nose.spot.items.Spot;
 import fr.eq3.nose.spot.spot_creator_activity.ImageItemCreatorActivity;
 
@@ -65,6 +59,16 @@ public final class SpotActivity extends AppCompatActivity {
             @Override
             public boolean onLoadMore(int page, int totalItemsCount) {
                 return loadNextData(6);
+            }
+        });
+        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                long image = spot.getItems().get(position).getId();
+
+                Intent intent = new Intent(SpotActivity.this, ImageActivity.class);
+                intent.putExtra("image", image);
+                startActivity(intent);
             }
         });
         loadNextData(8);
