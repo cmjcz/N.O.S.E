@@ -75,7 +75,9 @@ public final class ProgressiveImageLoader {
                 try {
                     img = new DatabaseRequest(ProgressiveImageLoader.this.context).getImage(ressourcesId);
                     imageItem.setId(img.getId());
-                    imageItem.setData(cropImage(img.getData()));
+                    Bitmap bitmap = cropImage(img.getData());
+                    bitmap = Bitmap.createScaledBitmap(bitmap, 256,256, false);
+                    imageItem.setData(bitmap);
                     imageItem.setName(img.getName());
                 } catch (ImageNotFoundException e) {
                     e.printStackTrace();
