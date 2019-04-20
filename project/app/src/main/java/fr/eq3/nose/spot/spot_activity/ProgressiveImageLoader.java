@@ -1,6 +1,7 @@
 package fr.eq3.nose.spot.spot_activity;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.util.Pair;
 
@@ -51,6 +52,27 @@ public final class ProgressiveImageLoader {
 
     private class Loader extends AsyncTask<Pair<Integer, ImageItem>, Void, Void> {
 
+        private Bitmap cropImage(Bitmap image){
+            int width = image.getWidth();
+            int height = image.getHeight();
+            int min;
+            int max;
+
+            Bitmap cropped;
+
+            if(height > width){
+                max = height;
+                min = width;
+            }
+            else{
+                max = width;
+                min = height;
+            }
+            cropped = Bitmap.createBitmap(image, 0, ((max/2)-(min/2)), min, max/2);
+            return cropped;
+
+        }
+
         @Override
         protected Void doInBackground(Pair<Integer, ImageItem>... pairs) {
             for(Pair<Integer, ImageItem> pair : pairs){
@@ -60,7 +82,7 @@ public final class ProgressiveImageLoader {
                 try {
                     img = new DatabaseRequest(ProgressiveImageLoader.this.context).getImage(ressourcesId);
                     imageItem.setId(img.getId());
-                    imageItem.setData(img.getData());
+                    imageItem.setData(cropImage(img.getData()));
                     imageItem.setName(img.getName());
                 } catch (ImageNotFoundException e) {
                     e.printStackTrace();
