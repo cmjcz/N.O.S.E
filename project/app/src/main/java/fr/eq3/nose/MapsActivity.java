@@ -58,7 +58,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Intent intentThatCalled;
     private Criteria criteria;
     private String bestProvider;
-    private String voice2text;
+    private String APP_STATE = "NULL";
     //About the menu
     FloatingActionMenu menuMap;
     FloatingActionButton option_mapTerrain, option_mapNormal, option_mapSatelite, option_addSpot;
@@ -73,7 +73,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         criteria = new Criteria();
         bestProvider = String.valueOf(locationManager.getBestProvider(criteria, true));
         intentThatCalled = getIntent();
-        voice2text = intentThatCalled.getStringExtra("v2txt");
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         MapFragment map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map));
@@ -103,7 +102,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
         option_addSpot.setOnClickListener(v -> {
             /**
-             * Lauch the spotCreator activity to get informations about the spot
+             * Launch the spotCreator activity to get information about the spot
              */
             Intent intent = new Intent(MapsActivity.this, SpotCreatorActivity.class);
             intent.putExtra(SpotCreatorActivity.KEY_POS, new LatLng(myLocation.getLatitude(), myLocation.getLongitude()));
@@ -112,6 +111,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void updateMaps(){
+        double formerLat = myLocation.getLatitude();
+        double formerLong = myLocation.getLongitude();
+        locationManager.requestLocationUpdates(bestProvider, MIN_TIME, MIN_DISTANCE, this);
+        if(locationManager.getLastKnownLocation(bestProvider)!=null){
+            myLocation = locationManager.getLastKnownLocation(bestProvider);
+            error.setVisibility(View.INVISIBLE);
+        }
         LatLng currentPosition = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
         Log.i("flo_out", "LATITUDE : "+myLocation.getLatitude()+" LONGITUDE : "+myLocation.getLongitude());
         refreshSpotsCache();
@@ -124,7 +130,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.setLatLngBoundsForCameraTarget(myArea);
         mMap.getUiSettings().setRotateGesturesEnabled(false);
         //Move the camera to the current location
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentPosition, 17.0f));
+        if((formerLat==0 && formerLong==0)){
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentPosition, 17.0f));
+        }
     }
 
     /**
@@ -135,10 +143,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      */
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        Log.i("flo_out", "ETAPE 0");
         mMap = googleMap;
         //Enable to track the location
-        Log.i("flo_out", "ETAPE 1");
         if(isGpsActivated()){
             Log.i("flo_out", "RECHERCHE");
             getLocation();
@@ -146,27 +152,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             if(!isLocationEnabled(MapsActivity.this)){
                 enableLocation();
             }
-            Location temporary = new Location("");
+            mMap.setMyLocationEnabled(true);
+            Location temporary = new Location(LocationManager.NETWORK_PROVIDER);
             temporary.setLatitude(0);
             temporary.setLongitude(0);
             myLocation = temporary;
             Log.i("flo_out", "TEMPORAIRE");
         }
-        Log.i("flo_out", "ETAPE 2");
-//        LatLng currentPosition = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
-//        Log.i("flo_out", "LATITUDE : "+myLocation.getLatitude()+" LONGITUDE : "+myLocation.getLongitude());
-//        refreshSpotsCache();
-//        //Map type
-//        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-//        //Min Zoom
-//        mMap.setMinZoomPreference(14.0f);
-//        //Disable rotation and scrolling
-//        LatLngBounds myArea = new LatLngBounds(new LatLng(currentPosition.latitude - 0.03, currentPosition.longitude - 0.03), new LatLng(currentPosition.latitude + 0.03, currentPosition.longitude + 0.03));
-//        mMap.setLatLngBoundsForCameraTarget(myArea);
-//        mMap.getUiSettings().setRotateGesturesEnabled(false);
-//        //Move the camera to the current location
-//        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentPosition, 17.0f));
+        LatLng currentPosition = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
         updateMaps();
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentPosition, 17.0f));
+        APP_STATE="STARTED";
         mMap.setOnMarkerClickListener(marker -> {
             Intent intent = new Intent(MapsActivity.this, SpotActivity.class);
             final long id = Long.parseLong(marker.getTitle());
@@ -174,6 +170,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             startActivity(intent);
             return true;
         });
+        mMap.setOnMyLocationChangeListener(relocate->updateMaps());
+        mMap.setOnMapClickListener(click->menuMap.close(true));
+        mMap.setOnCameraMoveStartedListener(change->menuMap.close(true));
         if(!isGpsActivated()){
             error.setVisibility(View.VISIBLE);
         }
@@ -185,7 +184,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      */
     @Override
     public void onLocationChanged(Location location) {
-        myLocation=location;
+        if(myLocation.getLongitude()==0 && myLocation.getLatitude()==0){
+            myLocation=location;
+            updateMaps();
+        }else{
+            myLocation=location;
+        }
         refreshSpotsCache();
     }
 
@@ -222,12 +226,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         getLocation();
         updateMaps();
+        LatLng currentPosition = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentPosition, 17.0f));
+
     }
 
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
         // TODO Auto-generated method stub
-
+        Log.i("flo_out", "STATUT CHANGÉ");
     }
 
 
@@ -244,8 +251,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if(bestProvider==null || bestProvider.equals(LocationManager.PASSIVE_PROVIDER)){
             return false;
         }
-        Log.i("flo_out", "ETAT GPS: "+locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER));
-        Log.i("flo_out", "PROVIDER: "+bestProvider);
         return locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER) || locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);//GPS_PROVIDER?
     }
 
@@ -288,9 +293,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      * Find the current location of the user or ask for permissions
      */
     protected void getLocation() {
-//        if(!isGpsActivated()){
-//            alertGpsDisabled();
-//        }
             if (isLocationEnabled(MapsActivity.this)) {
                 mMap.setMyLocationEnabled(true);
                 locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
@@ -299,7 +301,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 myLocation = locationManager.getLastKnownLocation(bestProvider);
                 if (myLocation != null) {
                     Toast.makeText(MapsActivity.this, "LOCALISATION : OK", Toast.LENGTH_SHORT).show();
-                    Log.i("flo_out", "LOCALISATION : OK");
 
                 } else {
                     enableLocation();
