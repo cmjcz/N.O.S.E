@@ -55,22 +55,15 @@ public final class ProgressiveImageLoader {
         private Bitmap cropImage(Bitmap image){
             int width = image.getWidth();
             int height = image.getHeight();
-            int min;
-            int max;
-
             Bitmap cropped;
 
             if(height > width){
-                max = height;
-                min = width;
+                cropped = Bitmap.createBitmap(image, 0, ((height/2)-(width/2)), width,width);
             }
             else{
-                max = width;
-                min = height;
+                cropped = Bitmap.createBitmap(image, ((width/2)-(height/2)), 0, height, height);
             }
-            cropped = Bitmap.createBitmap(image, 0, ((max/2)-(min/2)), min, max/2);
             return cropped;
-
         }
 
         @Override

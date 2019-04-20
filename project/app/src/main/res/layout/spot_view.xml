@@ -11,10 +11,11 @@
         style="@style/LinearLayoutMargin"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginLeft="15dp"
         android:orientation="vertical">
 
         <TextView
-            style="@style/ClassicTextStyle"
+            style="@style/Name_Desc_Text"
             android:id="@+id/spot_view_desc"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -26,7 +27,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:focusable="true"
-            android:numColumns="auto_fit"
+            android:numColumns="3"
             android:stretchMode="columnWidth"
             android:verticalSpacing="0dp" />
     </LinearLayout>
