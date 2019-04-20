@@ -1,21 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/Background"
     android:id="@+id/coordinatorLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
 
     <LinearLayout
+        style="@style/LinearLayoutMargin"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginLeft="15dp"
         android:orientation="vertical">
 
         <TextView
-            android:id="@+id/spot_view_name"
-            android:layout_width="match_parent"
+            style="@style/Name_Desc_Text"
+            android:id="@+id/spot_view_desc"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/default_text" />
+            android:text="TextView" />
 
         <GridView
             android:id="@+id/spot_view_galery"
@@ -23,7 +27,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:focusable="true"
-            android:numColumns="auto_fit"
+            android:numColumns="3"
             android:stretchMode="columnWidth"
             android:verticalSpacing="0dp" />
     </LinearLayout>

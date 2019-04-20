@@ -25,7 +25,7 @@ import fr.eq3.nose.spot.items.exceptions.ImageNotFoundException;
 
 public class DatabaseRequest extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "spots_db";
-    private static final int DATABASE_VERSION = 76;
+    private static final int DATABASE_VERSION = 77;
 
     private static final String TABLE_SPOTS = "spots";
     private static final String KEY_ID_SPOT = "id_spot";
@@ -79,7 +79,7 @@ public class DatabaseRequest extends SQLiteOpenHelper {
         int lvl = c.getInt(c.getColumnIndex(KEY_LVL));
         c.close();
         db.close();
-        return new SpotImpl(id, name, lat, longitude, lvl);
+        return new SpotImpl(id, name, desc, lat, longitude, lvl);
 
     }
 
@@ -183,7 +183,7 @@ public class DatabaseRequest extends SQLiteOpenHelper {
         values.put(KEY_LVL, START_LVL);
 
         long id = db.insert(TABLE_SPOTS, null, values);
-        return new SpotImpl(id, name, position.latitude, position.longitude, START_LVL);
+        return new SpotImpl(id, name, description, position.latitude, position.longitude, START_LVL);
     }
 
     public ImageItem createImageItem(String name, String description, Bitmap img, long spotId){

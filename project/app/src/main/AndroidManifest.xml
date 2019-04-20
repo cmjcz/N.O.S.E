@@ -34,7 +34,6 @@
             android:label="@string/title_activity_maps">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -47,17 +46,24 @@
                 android:value=".MapsActivity" />
         </activity>
         <activity
-        android:name=".spot.spot_creator_activity.SpotCreatorActivity"
-        android:label="@string/app_name"
+            android:name=".spot.spot_creator_activity.SpotCreatorActivity"
+            android:label="@string/spot_s_new"
             android:parentActivityName=".MapsActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MapsActivity" />
         </activity>
         <activity
-        android:name=".spot.spot_creator_activity.ImageItemCreatorActivity"
-        android:label="@string/app_name">
-    </activity>
+            android:name=".spot.spot_creator_activity.ImageItemCreatorActivity"
+            android:label="@string/image_new">
+        </activity>
+        <activity
+            android:name=".spot.image_activity.ImageActivity"
+            android:label="@string/app_name">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".spot.spot_activity.SpotActivity" />
+        </activity>
     </application>
 
 </manifest>

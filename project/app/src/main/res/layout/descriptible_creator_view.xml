@@ -1,25 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/Background"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <EditText
-        android:id="@+id/nameTextField"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ems="10"
-        android:hint="@string/name"
-        android:inputType="textPersonName" />
-
-    <EditText
-        android:id="@+id/descTextField"
+    <LinearLayout
+        style="@style/LinearLayoutMargin"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:ems="10"
-        android:layout_marginTop="64dp"
-        android:hint="@string/description"
-        android:inputType="textMultiLine" />
+        android:orientation="vertical">
+
+        <TextView
+            style="@style/TitleTextStyle"
+            android:id="@+id/desc_creator_view_nom"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:text="@string/desc_creator_view_nom" />
+
+        <EditText
+            style="@style/ClassicTextStyle"
+            android:id="@+id/nameTextField"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:ems="10"
+            android:inputType="textPersonName" />
+
+        <TextView
+            style="@style/TitleTextStyle"
+            android:id="@+id/desc_creator_view_desc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:text="@string/desc_creator_view_desc" />
+
+        <EditText
+            style="@style/ClassicTextStyle"
+            android:id="@+id/descTextField"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:ems="10"
+            android:inputType="textMultiLine" />
+    </LinearLayout>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/validateButton"
