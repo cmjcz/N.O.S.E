@@ -1,9 +1,7 @@
 package fr.eq3.nose;
 
 import android.Manifest;
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -13,11 +11,9 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
-import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -55,14 +51,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Set<Spot> spot_cache = new HashSet<>();
     private TextView error;
     //Requete de localisation
-    private Intent intentThatCalled;
     private Criteria criteria;
     private String bestProvider;
-    private String APP_STATE = "NULL";
     //About the menu
     FloatingActionMenu menuMap;
     FloatingActionButton option_mapTerrain, option_mapNormal, option_mapSatelite, option_addSpot;
 
+    /**
+     * Method called at the creation of the app
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,15 +70,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         criteria = new Criteria();
         bestProvider = String.valueOf(locationManager.getBestProvider(criteria, true));
-        intentThatCalled = getIntent();
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         MapFragment map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map));
         map.getMapAsync(this);
         initializeMenu();
-
     }
 
+    /**
+     * Method which creates and initializes the menu
+     */
     private void initializeMenu(){
         menuMap = findViewById(R.id.menuMap);
         option_mapTerrain = findViewById(R.id.option_mapTerrain);
@@ -110,6 +109,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 
+    /**
+     * Method which creates the general default parameters for the map
+     */
     private void updateMaps(){
         double formerLat = myLocation.getLatitude();
         double formerLong = myLocation.getLongitude();
@@ -119,10 +121,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             error.setVisibility(View.INVISIBLE);
         }
         LatLng currentPosition = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
-        Log.i("flo_out", "LATITUDE : "+myLocation.getLatitude()+" LONGITUDE : "+myLocation.getLongitude());
         refreshSpotsCache();
-        //Map type
-        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         //Min Zoom
         mMap.setMinZoomPreference(14.0f);
         //Disable rotation and scrolling
@@ -146,7 +145,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap = googleMap;
         //Enable to track the location
         if(isGpsActivated()){
-            Log.i("flo_out", "RECHERCHE");
             getLocation();
         }else{
             if(!isLocationEnabled(MapsActivity.this)){
@@ -157,12 +155,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             temporary.setLatitude(0);
             temporary.setLongitude(0);
             myLocation = temporary;
-            Log.i("flo_out", "TEMPORAIRE");
         }
         LatLng currentPosition = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
         updateMaps();
+        //Map type
+        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentPosition, 17.0f));
-        APP_STATE="STARTED";
         mMap.setOnMarkerClickListener(marker -> {
             Intent intent = new Intent(MapsActivity.this, SpotActivity.class);
             final long id = Long.parseLong(marker.getTitle());
@@ -203,23 +201,29 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         refreshMap();
     }
 
+    /**
+     * If the provider is disabled by the user
+     * @param provider
+     */
     @Override
     public void onProviderDisabled(String provider) {
         // TODO Auto-generated method stub
         Toast.makeText(MapsActivity.this,
                 "Signal GPS perdu", Toast.LENGTH_LONG)
                 .show();
-        Log.i("flo_out", "DISABLED : "+provider);
         error.setVisibility(View.VISIBLE);
     }
 
+    /**
+     * If the provider is enabled by the user
+     * @param provider
+     */
     @Override
     public void onProviderEnabled(String provider) {
         // TODO Auto-generated method stub
         Toast.makeText(MapsActivity.this,
                 "GPS trouvé", Toast.LENGTH_LONG)
                 .show();
-        Log.i("flo_out", "ENABLED : "+provider);
         error.setVisibility(View.INVISIBLE);
         if(!isLocationEnabled(MapsActivity.this)){
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_LOCATION_REQUEST_CODE);
@@ -228,13 +232,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         updateMaps();
         LatLng currentPosition = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentPosition, 17.0f));
-
     }
 
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
         // TODO Auto-generated method stub
-        Log.i("flo_out", "STATUT CHANGÉ");
     }
 
 
@@ -254,20 +256,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER) || locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);//GPS_PROVIDER?
     }
 
-    public void alertGpsDisabled(){
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage(R.string.dialog).setCancelable(false)
-                .setPositiveButton("Activer GPS", (dialog, param2) -> {
-                    startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
-                    dialog.cancel();
-                })
-                .setNegativeButton("Quitter", (dialog, param2) -> {
-                    dialog.cancel();
-                    finish();
-                });
-        builder.create().show();
-        Log.i("flo_out", "ALERTE");
-    }
 
     /**
      * The statement is true if ACCESS_FINE_LOCATION has been granted
@@ -279,12 +267,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 == PackageManager.PERMISSION_GRANTED);
     }
 
+    /**
+     * Find the location of the user (no permission here)
+     */
     private void enableLocation(){
         locationManager.requestLocationUpdates(bestProvider, MIN_TIME, MIN_DISTANCE, this);
         myLocation = locationManager.getLastKnownLocation(bestProvider);
-        Log.i("flo_out", "LOCALISATION : NULL");
         if (myLocation == null) {
-            Log.i("flo_out", "LOCALISATION : NULL + boucle");
             getLocation();
         }
     }
@@ -346,6 +335,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.addCircle(getSpotInfluenceZone(spot));
     }
 
+    /**
+     * Return the marker of a spot
+     * @param spot
+     * @return
+     */
     private MarkerOptions getSpotMarker(Spot spot){
         MarkerOptions markerOptions = new MarkerOptions()
                 .position(new LatLng(spot.getLat(), spot.getLong()))
@@ -353,6 +347,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return  markerOptions;
     }
 
+    /**
+     * Return the influence zone of a spot
+     * @param spot
+     * @return
+     */
     private CircleOptions getSpotInfluenceZone(Spot spot){
         CircleColor circleColor = CircleColor.GREEN;
         return new CircleOptions()
@@ -388,12 +387,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private enum CircleColor{
-
         GREEN(Color.GREEN, 0x7093fc0a);
-
         private int strokeColor;
         private int fillColor;
-
         CircleColor(int strokeColor, int fillColor){
             this.fillColor = fillColor;
             this.strokeColor = strokeColor;
